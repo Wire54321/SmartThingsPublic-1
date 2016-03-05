@@ -48,6 +48,8 @@ def installed()
 	if (motion) {
 		subscribe(motion, "motion", motionHandler)
 	}
+    state.setpoint = setpoint
+    log.debug "setpoint now saved as $setpoint and ${state.setpoint} "
 }
 
 def updated()
@@ -70,8 +72,10 @@ def heatingSetpointHandler(evt)
       log.debug "dont care about cooling setpoint ${evt.value} since we are a cooler"
       return;
     }
-    log.debug "set setpoint from $setpoint to ${evt.value} + $setpointoffset because we are a heater"
-    state.setpoint = evt.value + setpointoffset
+    log.debug "set setpoint from ${state.setpoint} to ${evt.value} + $setpointoffset because we are a heater"
+    state.setpoint = (evt.doubleValue + setpointoffset).round(0)
+    log.debug "state.setpoint is now ${state.setpoint} "    
+    evaluate(state.lasttemp, state.setpoint) // check if we should turn on or off now
 }
 
 def coolingSetpointHandler(evt)
@@ -80,14 +84,17 @@ def coolingSetpointHandler(evt)
       log.debug "dont care about cooling setpoint ${evt.value} since we are a heater"
       return;
     }
-    log.debug "set setpoint from $setpoint to ${evt.value} + $setpointoffset because we are a cooler"
-    state.setpoint = evt.value + setpointoffset
+    log.debug "set setpoint from ${state.setpoint} to ${evt.value} + $setpointoffset because we are a cooler"
+    state.setpoint = (evt.doubleValue + setpointoffset).round(0)
+    log.debug "state.setpoint is now ${state.setpoint} "
+    evaluate(state.lasttemp, state.setpoint) // check if we should turn on or off now
 }
 
 def temperatureHandler(evt)
 {
 	def isActive = hasBeenRecentMotion()
 	if (isActive || emergencySetpoint) {
+        state.lasttemp=evt.doubleValue
 		evaluate(evt.doubleValue, isActive ? state.setpoint : emergencySetpoint)
 	}
 	else {
