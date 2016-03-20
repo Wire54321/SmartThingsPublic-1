@@ -14,7 +14,7 @@ preferences {
 		input "presence1", "capability.presenceSensor", title: "Who?", multiple: true
 	}
 	section("Unlock the lock..."){
-		input "lock1", "capability.lock", multiple: true
+		input "lock1", "capability.lock", multiple: true, required: false
 	}
 }
 
@@ -32,11 +32,13 @@ def updated()
 def presence(evt)
 {
     log.info "presence detected..."
+    if (lock1){
 	def anyLocked = lock1.count{it.currentLock == "unlocked"} != lock1.size()
 	if (anyLocked) {
 		sendPush "Unlocked door due to arrival of $evt.displayName"
 		lock1.unlock()
-	}    
+	}
+    }
     //sendLocationEvent(name: "alarmSystemStatus", value: "away")
     //sendLocationEvent(name: "alarmSystemStatus", value: "stay")
     sendLocationEvent(name: "alarmSystemStatus", value: "off")
