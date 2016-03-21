@@ -1,106 +1,51 @@
 metadata {
 	definition (name: "Haas Shield Dryer", namespace: "drandyhaas", author: "Andy Haas") {
-		capability "Actuator"
+    	capability "Temperature Measurement"
 		capability "Switch"
 		capability "Sensor"
-        
-        command "hello"
-        command "goodbye"
-        command "up"
-        command "down"
-        attribute "greeting","string"
+        command    "hello"
+        attribute  "greeting","string"
+        attribute  "temp","number"
+        attribute  "pressure","number"
+        attribute  "ontime","number"
 	}
-
-	// Simulator metadata
-	simulator {
-		status "on":  "catchall: 0104 0000 01 01 0040 00 0A21 00 00 0000 0A 00 0A6F6E"
-		status "off": "catchall: 0104 0000 01 01 0040 00 0A21 00 00 0000 0A 00 0A6F6666"
-
-		// reply messages
-		reply "raw 0x0 { 00 00 0a 0a 6f 6e }": "catchall: 0104 0000 01 01 0040 00 0A21 00 00 0000 0A 00 0A6F6E"
-		reply "raw 0x0 { 00 00 0a 0a 6f 66 66 }": "catchall: 0104 0000 01 01 0040 00 0A21 00 00 0000 0A 00 0A6F6666"
-	}
-
-	// UI tile definitions
 	tiles {
-		standardTile("switch", "device.switch", width: 2, height: 2, canChangeIcon: true, canChangeBackground: true) {
-			state "on", label: 'up', action: "switch.off", icon: "st.vents.vent-open", backgroundColor: "#79b821"
-			state "off", label: 'down', action: "switch.on", icon: "st.vents.vent", backgroundColor: "#ffffff"
+        valueTile("temperature", "device.temperature", width: 1, height: 1) {
+			state("temperature", label:'${currentValue}°F', backgroundColors:[ [value: 31, color: "#153591"],[value: 44, color: "#1e9cbb"],[value: 59, color: "#90d2a7"],[value: 74, color: "#44b621"],[value: 84, color: "#f1d801"],[value: 95, color: "#d04e00"],[value: 96, color: "#bc2323"] ] )
+		}
+        valueTile("pressure", "device.pressure", inactiveLabel: false) {
+			state "pressure", label:'${currentValue} inHg'
+		}
+        valueTile("ontime", "device.ontime", inactiveLabel: false) {
+			state "ontime", label:'${currentValue} min'
 		}
 
-		standardTile("greeting", "device.greeting", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
-			state "default", label: 'hello', action: "hello", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
-		}  
-        
+        standardTile("switch", "device.switch", width: 2, height: 2, canChangeIcon: true, canChangeBackground: true) {
+			state "on", label: 'on', action: "switch.off", icon: "st.vents.vent-open", backgroundColor: "#79b821"
+			state "off", label: 'off', action: "switch.on", icon: "st.vents.vent", backgroundColor: "#ffffff"
+		}
 		valueTile("message", "device.greeting", inactiveLabel: false) {
-			state "greeting", label:'${currentValue}', unit:""
+			state "greeting", label:'${currentValue}', action: "hello"
 		}
         
-        standardTile("up", "device.up", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
-			state "default", label: 'up', action: "up", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
-		}  
-        standardTile("down", "device.down", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
-			state "default", label: 'down', action: "down", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
-		}  
-        
-		main "switch"
-		details(["switch","greeting","message","up","down"])
+		main "temperature"
+		details(["temperature","pressure","ontime","switch","hello","message"])
 	}
 }
 
-Map parse(String description) {
-
-	def value = zigbee.parse(description)?.text
-	def linkText = getLinkText(device)
-	def descriptionText = getDescriptionText(description, linkText, value)
-	def handlerName = value
-	def isStateChange = value != "ping"
-	def displayed = value && isStateChange
-
-	def result = [
-		value: value,
-		name: value in ["on","off"] ? "switch" : (value && value != "ping" ? "greeting" : null),
-		handlerName: handlerName,
-		linkText: linkText,
-		descriptionText: descriptionText,
-		isStateChange: isStateChange,
-		displayed: displayed
-	]
-
-	log.debug result.descriptionText
-	result
-}
-
-def on() {
-	delayBetween([up(),up()],3000)
-    //zigbee.smartShield(text: "on").format()
-}
-
-def off() {
-	down()
-	//zigbee.smartShield(text: "off").format()
-    sleep(3000)
-    down()
-}
-
-def up() {
-	log.debug "Up"
-    zigbee.smartShield(text: "up").format()
-}
-
-def down() {
-	log.debug "Down"
-	zigbee.smartShield(text: "down").format()
-}
-
-def hello() {
-	log.debug "Hello World!"
+def hello(){
+    log.debug "sending hello"
 	zigbee.smartShield(text: "hello").format()
 }
 
-def goodbye() {
-	log.debug "Bye Bye!"
-	zigbee.smartShield(text: "goodbye").format()
+def on() {
+    log.debug "sending on"
+	zigbee.smartShield(text: "on").format()
+}
+
+def off() {
+    log.debug "sending off"
+	zigbee.smartShield(text: "off").format()
 }
 
 // Parse incoming device messages to generate events
@@ -116,8 +61,33 @@ def parse(String description){
         //hello()
         return
     }
-//	def result = createEvent(name: "greeting", value: text as Double)
-	def result = createEvent(name: "greeting", value: text)
-    log.debug result?.descriptionText
-    return result
+
+    def result = createEvent(name: "greeting", value: text)
+
+  def values = text.split(":")
+  def vs = values.size()
+  //log.debug "values size is $vs "
+  if (vs>1){
+    log.debug "got values ${values[0]} and ${values[1]} "
+    def val = values[1].toFloat()
+    if (values[0]=="pressure"){
+      //log.debug "pressure val is $val "
+      result = createEvent(name: "pressure", value: val )
+    }
+    else if (values[0]=="tempF"){
+      //log.debug "temp val is $val "
+      result = createEvent(name: "temperature", value: val )
+    }
+    else if (values[0]=="ontime"){
+      //log.debug "ontime val is $val "
+      result = createEvent(name: "ontime", value: val )
+      //if (val>0) sendNotification("Dryer ontime is ${values[1]} ") //, [method: "push"])
+    }
+  }//values.size()>1
+  else if (text=="on" || text=="off"){
+    result = createEvent(name: "switch", value: text)
+  }
+    
+  log.debug result?.descriptionText
+  return result
 }
