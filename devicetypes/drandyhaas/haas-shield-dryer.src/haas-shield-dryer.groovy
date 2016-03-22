@@ -5,9 +5,11 @@ metadata {
 		capability "Sensor"
         command    "hello"
         attribute  "greeting","string"
+        attribute  "weatherpressure", "string"
         attribute  "temp","number"
         attribute  "pressure","number"
         attribute  "ontime","number"
+        attribute  "freeram", "number"
 	}
 	tiles {
         valueTile("temperature", "device.temperature", width: 1, height: 1) {
@@ -17,19 +19,25 @@ metadata {
 			state "pressure", label:'${currentValue} inHg'
 		}
         valueTile("ontime", "device.ontime", inactiveLabel: false) {
-			state "ontime", label:'${currentValue} min'
+			state "ontime", label:'${currentValue} s'
 		}
 
-        standardTile("switch", "device.switch", width: 2, height: 2, canChangeIcon: true, canChangeBackground: true) {
+        standardTile("switch", "device.switch", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
 			state "on", label: 'on', action: "switch.off", icon: "st.vents.vent-open", backgroundColor: "#79b821"
 			state "off", label: 'off', action: "switch.on", icon: "st.vents.vent", backgroundColor: "#ffffff"
 		}
-		valueTile("message", "device.greeting", inactiveLabel: false) {
-			state "greeting", label:'${currentValue}', action: "hello"
+        valueTile("weatherpressure", "device.weatherpressure", decoration: "flat") {
+			state "default", label:'weather: ${currentValue} inHg'
+		}
+		valueTile("greeting", "device.greeting", inactiveLabel: false, decoration: "flat") {
+			state "default", label:'${currentValue}', action: "hello"
+		}
+        valueTile("freeram", "device.freeram", inactiveLabel: false) {
+			state "default", label:'RAM ${currentValue} B free'
 		}
         
 		main "temperature"
-		details(["temperature","pressure","ontime","switch","hello","message"])
+		details(["temperature","pressure","ontime","switch","weatherpressure","greeting","freeram"])
 	}
 }
 
@@ -72,7 +80,13 @@ def parse(String description){
     def val = values[1].toFloat()
     if (values[0]=="pressure"){
       //log.debug "pressure val is $val "
-      result = createEvent(name: "pressure", value: val )
+      result = createEvent(name: "pressure", value: (val+0.05).round(2) ) //calibration
+      
+      //get weather pressure
+      def obs = getWeatherFeature("conditions", "10516")?.current_observation
+      log.debug "Got weather pressure: ${obs.pressure_in} inHg"
+      sendEvent(name: "weatherpressure", value: obs.pressure_in )
+      //list of variables: http://www.wunderground.com/weather/api/d/docs?d=data/conditions&MR=1
     }
     else if (values[0]=="tempF"){
       //log.debug "temp val is $val "
@@ -81,7 +95,10 @@ def parse(String description){
     else if (values[0]=="ontime"){
       //log.debug "ontime val is $val "
       result = createEvent(name: "ontime", value: val )
-      //if (val>0) sendNotification("Dryer ontime is ${values[1]} ") //, [method: "push"])
+    }
+    else if (values[0]=="freeram"){
+      //log.debug "freeram val is $val "
+      result = createEvent(name: "freeram", value: val )
     }
   }//values.size()>1
   else if (text=="on" || text=="off"){
