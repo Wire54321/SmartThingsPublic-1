@@ -98,7 +98,7 @@ def parse(String description){
     }
     else if (values[0]=="freeram"){
       //log.debug "freeram val is $val "
-      result = createEvent(name: "freeram", value: val )
+      result = createEvent(name: "freeram", value: val.round() )
     }
   }//values.size()>1
   else if (text=="on" || text=="off"){
