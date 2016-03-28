@@ -1,5 +1,5 @@
 metadata {
-	definition (name: "Haas Shield Coffee", namespace: "drandyhaas", author: "Andy Haas") {
+	definition (name: "Haas Shield OnOffModeHello", namespace: "drandyhaas", author: "Andy Haas") {
 		capability "Actuator"
 		capability "Switch"
 		capability "Sensor"
@@ -40,14 +40,12 @@ metadata {
 }
 
 def on() {
-	//always send "on"... the shield will know whether it is on or off... it's always just a press of the on/off button.
 	log.debug "on"
     zigbee.smartShield(text: "on").format()
 }
 def off() {
-	//always send "on"... the shield will know whether it is on or off... it's always just a press of the on/off button.
 	log.debug "off"
-    zigbee.smartShield(text: "on").format()
+    zigbee.smartShield(text: "off").format()
 }
 
 def mode() {
