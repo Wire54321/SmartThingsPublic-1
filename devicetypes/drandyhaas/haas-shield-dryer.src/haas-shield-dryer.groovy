@@ -80,7 +80,7 @@ def parse(String description){
     def val = values[1].toFloat()
     if (values[0]=="pressure"){
       //log.debug "pressure val is $val "
-      result = createEvent(name: "pressure", value: (val+0.05).round(2) ) //calibration
+      result = createEvent(name: "pressure", value: (val+0.04).round(2) ) //calibration
       
       //get weather pressure
       def obs = getWeatherFeature("conditions", "10516")?.current_observation

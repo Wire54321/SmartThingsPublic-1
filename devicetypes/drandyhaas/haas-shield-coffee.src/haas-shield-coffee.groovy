@@ -1,11 +1,11 @@
 metadata {
-	definition (name: "Haas Shield", namespace: "drandyhaas", author: "Andy Haas") {
+	definition (name: "Haas Shield Coffee", namespace: "drandyhaas", author: "Andy Haas") {
 		capability "Actuator"
 		capability "Switch"
 		capability "Sensor"
         
         command "hello"
-        command "up"
+        command "mode"
         attribute "greeting","string"
 	}
 
@@ -34,12 +34,12 @@ metadata {
 			state "greeting", label:'${currentValue}', unit:""
 		}
         
-        standardTile("up", "device.up", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
-			state "default", label: 'up', action: "up", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
+        standardTile("mode", "device.mode", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
+			state "default", label: 'mode', action: "mode", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
 		}
         
 		main "switch"
-		details(["switch","greeting","message","up"])
+		details(["switch","greeting","message","mode"])
 	}
 }
 
@@ -67,23 +67,30 @@ Map parse(String description) {
 }
 
 def on() {
+	//always send "on"... the shield will know whether it is on or off... it's always just a press of the on/off button.
 	log.debug "on"
     zigbee.smartShield(text: "on").format()
 }
 
 def off() {
+	//always send "on"... the shield will know whether it is on or off... it's always just a press of the on/off button.
 	log.debug "off"
-	zigbee.smartShield(text: "off").format()
+	zigbee.smartShield(text: "on").format()
 }
 
 def up() {
-	log.debug "up"
-    zigbee.smartShield(text: "up").format()
+	log.debug "mode"
+    zigbee.smartShield(text: "mode").format()
 }
 
 def hello() {
 	log.debug "Hello World!"
 	zigbee.smartShield(text: "hello").format()
+}
+
+def goodbye() {
+	log.debug "Bye Bye!"
+	zigbee.smartShield(text: "goodbye").format()
 }
 
 // Parse incoming device messages to generate events
