@@ -21,25 +21,28 @@ preferences {
 def installed()
 {
 	subscribe(presence1, "presence.present", presence)
+	subscribe(app, presence)
 }
 
 def updated()
 {
 	unsubscribe()
-	subscribe(presence1, "presence.present", presence)
-}
+	installed()}
 
 def presence(evt)
 {
-    log.info "presence detected..."
+    log.info "presence detected: $evt "
+    sendPush "Presence detected"
     if (lock1){
-	def anyLocked = lock1.count{it.currentLock == "unlocked"} != lock1.size()
-	if (anyLocked) {
-		sendPush "Unlocked door due to arrival of $evt.displayName"
-		lock1.unlock()
-	}
+    	log.info "checking locks..."
+		def anyLocked = lock1.count{it.currentLock == "unlocked"} != lock1.size()
+		if (anyLocked) {
+        	log.info "unlocking locks"
+			sendPush "Unlocked door due to arrival of $evt.displayName"
+			lock1.unlock()
+		}
     }
     //sendLocationEvent(name: "alarmSystemStatus", value: "away")
     //sendLocationEvent(name: "alarmSystemStatus", value: "stay")
-    sendLocationEvent(name: "alarmSystemStatus", value: "off")
+    //sendLocationEvent(name: "alarmSystemStatus", value: "off")
 }
