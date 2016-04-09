@@ -27,7 +27,8 @@ def installed()
 def updated()
 {
 	unsubscribe()
-	installed()}
+	installed()
+}
 
 def presence(evt)
 {

@@ -45,6 +45,7 @@ def installed()
 	subscribe(sensor, "temperature", temperatureHandler)
     subscribe(thermo, "heatingSetpoint", heatingSetpointHandler)
     subscribe(thermo, "coolingSetpoint", coolingSetpointHandler)
+	//subscribe(app, hasBeenRecentMotion)
 	if (motion) {
 		subscribe(motion, "motion", motionHandler)
 	}
@@ -56,14 +57,7 @@ def updated()
 {
     log.debug "updated"
 	unsubscribe()
-	subscribe(sensor, "temperature", temperatureHandler)
-    subscribe(thermo, "heatingSetpoint", heatingSetpointHandler)
-    subscribe(thermo, "coolingSetpoint", coolingSetpointHandler)
-	if (motion) {
-		subscribe(motion, "motion", motionHandler)
-	}
-    state.setpoint = setpoint
-    log.debug "setpoint now saved as $setpoint and ${state.setpoint} "
+	installed()
 }
 
 def heatingSetpointHandler(evt)
@@ -124,7 +118,7 @@ def motionHandler(evt)
 	}
 }
 
-private evaluate(currentTemp, desiredTemp)
+def evaluate(currentTemp, desiredTemp)
 {
 	log.debug "EVALUATE($currentTemp, $desiredTemp)"
 	def threshold = 1.0
@@ -148,15 +142,16 @@ private evaluate(currentTemp, desiredTemp)
 	}
 }
 
-private hasBeenRecentMotion()
+def hasBeenRecentMotion()
 {
 	def isActive = false
 	if (motion && minutes) {
 		def deltaMinutes = minutes as Long
 		if (deltaMinutes) {
 			def motionEvents = motion.eventsSince(new Date(now() - (60000 * deltaMinutes)))
-			log.trace "Found ${motionEvents?.size() ?: 0} events in the last $deltaMinutes minutes"
-			if (motionEvents.find { it.value == "active" }) {
+			log.debug "Found ${motionEvents?.size() ?: 0} events in the last $deltaMinutes minutes"
+			if (motionEvents.find { it.descriptionText.contains("detected motion") }) {
+                log.debug "Found an active one"
 				isActive = true
 			}
 		}
