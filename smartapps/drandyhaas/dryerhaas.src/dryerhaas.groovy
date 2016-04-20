@@ -10,8 +10,7 @@ definition(
 
 preferences {
 	section("Choose dryer switches to montior on and off... ") {
-		input "myswitchon",  "capability.switch"
-		input "myswitchoff", "capability.switch"
+		input "myswitch",  "capability.switch"
 	}
 /*
 	section("Warning level...") {
@@ -27,13 +26,24 @@ def checkforchanges(){
 def installed(){
     log.debug("installed")
     state.warned = 0
-    subscribe(myswitchon,  "switch.on",  handler)
-    subscribe(myswitchoff, "switch.off", handler)
+    subscribe(myswitch, "switch.on",  handler)
+    subscribe(myswitch, "switch.off", handler)
+    subscribe(myswitch, "greeting", greetings)
 }
 
 def updated(){
     unsubscribe()
     installed()
+}
+
+def greetings(evt){
+    log.debug "dryer switch warning app: $evt.name, $evt.value, $settings"
+    def level = evt.value.substring(0, evt.value.length()-2).toInteger()
+    log.debug "level is '${level}'"
+    if (level<120){
+       log.debug("dryer switch $level : power reset?")
+       sendPush("dryer switch $level : power reset?")
+    }
 }
 
 def handler(evt){
@@ -47,10 +57,15 @@ def handler(evt){
        if (state.warned==0) sendPush("dryer switch is : $level")
        state.warned = 1 // record that we already warned about this
     }
-    else{
+    else if (level=="off"){
        log.debug("switch off")
-       //if (level.toInteger() < (warnlevel-50)){
 	   if (state.warned==1) sendPush("dryer switch is now : $level")
        state.warned = 0 // record that we have not already warned about this now
     }
+    else {
+       log.debug("switch unknown: $level ")
+	   if (state.warned==0) sendPush("dryer switch is now : $level")
+       state.warned = 1 // record that we already warned about this
+    }
+    
 }
