@@ -14,7 +14,7 @@ preferences {
 		input "thermostat", "capability.thermostat"
 	}
 	section("Heat pump temp...") {
-		input "heatpumpSetpoint", "number", title: "Degrees?"
+		input "heatpumpSetpoint", "number", title: "Turn on at degrees?"
 	}
     section("Choose other thermostats to update too... ") {
 		input "otherthermostats", "capability.thermostat", multiple: true
@@ -41,15 +41,15 @@ def checkforchanges(){
     def mode = thermostat.currentThermostatMode
     log.debug("current mode is $mode")
     
-    if (temper > heatpumpSetpoint && temper <= 66){
-       log.debug("above heatpumpSetpoint and <=66")
+    if (temper > heatpumpSetpoint){
+       log.debug("above heatpumpSetpoint")
        if (mode == "emergencyHeat"){
           log.debug("mode == emergencyHeat, setting to heat")
           thermostat.heat() //setThermostatMode("heat")
        }
     }
     else{
-       log.debug("not above heatpumpSetpoint or >66")
+       log.debug("not above heatpumpSetpoint")
        if (mode == "heat"){
           log.debug("mode == heat, setting to emergencyHeat")
           thermostat.emergencyHeat() //setThermostatMode("emergencyHeat")
