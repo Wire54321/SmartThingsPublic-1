@@ -97,13 +97,17 @@ def parse(String description){
         //
         */
         
+        if (level.toInteger()>1000){
+        log.debug "level too high to make sense"
+        return
+        }
+        
         //don't change unless it is significant
         if (!state.level) state.level = level.toInteger()
         if ( (level.toInteger() - state.level).abs() < 10 ){
         	text="${state.level}mm"
         }
         else state.level = level.toInteger()
-        //
         
     }
     
