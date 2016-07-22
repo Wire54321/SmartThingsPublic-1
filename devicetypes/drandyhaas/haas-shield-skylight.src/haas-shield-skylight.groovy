@@ -61,12 +61,15 @@ def parse(String description){
     }
 	if (text == "ping"){
     	log.debug "got ping"
-        return
+        //return
     }
     
 	def result = createEvent(name: "greeting", value: text)
-    if (text == "on" || text == "off"){
-    	result = createEvent(name: "switch", value: text, state: text)
+    if (text == "on" || text == "up"){
+    	result = createEvent(name: "switch", value: "on", state: "on")
+    }
+    if (text == "off" || text == "down"){
+    	result = createEvent(name: "switch", value: "off", state: "off")
     }
     log.debug result?.descriptionText
     return result
