@@ -1,10 +1,4 @@
-/*
- * Philio PSM02 4-in-1 Multi Sensor Device Type
- * Based on My PSM01 Sensor created by SmartThings/Paul Spee
- * which is based on SmartThings' Aeon Multi Sensor Reference Device Type, Philio PHI_PSM02 Sensor, eyeonall, AJ
- */
- 
- metadata {
+metadata {
 	definition (name: "Zipato Window Sensor Haas", namespace: "drandyhaas", author: "Andy Haas") {
 		capability "Contact Sensor"
 		capability "Relative Humidity Measurement"
@@ -72,31 +66,28 @@
 }
 
 def installed() {
-	log.debug "PSM02: Installed with settings: ${settings}"
+	log.debug "Installed with settings: ${settings}"
 	configure()
 }
 
 def updated() {
-	log.debug "PSM02: Updated with settings: ${settings}"
+	log.debug "Updated with settings: ${settings}"
     configure()
 }
 
 // Parse incoming device messages to generate events
 def parse(String description)
 {
-    log.debug "PSM02 Parse called with ${description}"
+    log.debug "Parse called with ${description}"
 	def result = []
 	def cmd = zwave.parse(description, [0x20: 1, 0x30: 2, 0x31: 5, 0x70: 1, 0x72: 2, 0x80: 1, 0x84: 2, 0x85: 2, 0x86: 1])
-	log.debug "PSM02 Parsed CMD: ${cmd.toString()}"
+	log.debug "Parsed CMD: ${cmd.toString()}"
     if (cmd) { 
 		if( cmd.CMD == "8407" ) { result << new physicalgraph.device.HubAction(zwave.wakeUpV2.wakeUpNoMoreInformation().format()) }
 		def evt = zwaveEvent(cmd)
         result << createEvent(evt)
 	}
-    def statusTextmsg = "" //Door is ${device.currentState('contact').value}, temp is ${device.currentState('temperature').value}°, and illuminance is ${device.currentState('illuminance').value} LUX."
-    sendEvent("name":"statusText", "value":statusTextmsg)
-    //log.debug statusTextmsg
-	log.debug "PSM02 Parse returned ${result}"
+	log.debug "Parse returned ${result}"
 	return result
 }
 
@@ -113,28 +104,26 @@ def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulat
 // Event Generation
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd)
 {
-	log.debug "PSM02: WakeUpNotification ${cmd.toString()}}"
-	[descriptionText: "${device.displayName} woke up", isStateChange: false]
+	log.debug "WakeUpNotification ${cmd.toString()}}"
+	def result = [descriptionText: "${device.displayName} woke up", isStateChange: false]
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd)
 {
-	log.debug "PSM02: SensorMultilevel ${cmd.toString()}"
+	log.debug "SensorMultilevel ${cmd.toString()}"
 	def map = [:]
 	switch (cmd.sensorType) {
 		case 1:
 			// temperature
 			def cmdScale = cmd.scale == 1 ? "F" : "C"
-			map.value = convertTemperatureIfNeeded(cmd.scaledSensorValue, cmdScale, cmd.precision)
+			map.value = Float.parseFloat(convertTemperatureIfNeeded(cmd.scaledSensorValue, cmdScale, cmd.precision))
 			map.unit = getTemperatureScale()
 			map.name = "temperature"
             if (tempOffset) {
                 log.debug "temp offset $tempOffset "
-				def offset = tempOffset as int
-				def v = map.value as int
-				map.value = v + offset
+				map.value += tempOffset
 			}
-            log.debug "Adjusted temp value ${map.value}"
+            map.value = Math.round(map.value)
 			break;
 		case 3:
 			// luminance
@@ -154,7 +143,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelR
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
-	log.debug "PSM02: BatteryReport ${cmd.toString()}}"
+	log.debug "BatteryReport ${cmd.toString()}}"
 	def map = [:]
 	map.name = "battery"
 	map.value = cmd.batteryLevel > 0 ? cmd.batteryLevel.toString() : 1
@@ -194,38 +183,22 @@ def zwaveEvent(physicalgraph.zwave.commands.notificationv3.NotificationReport cm
 }
 
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
-	log.debug "PSM02: Catchall reached for cmd: ${cmd.toString()}}"
+	log.debug "Catchall reached for cmd: ${cmd.toString()}}"
 	[:]
 }
 
 def configure() {
     log.debug "configure() called"
-    
 	delayBetween([
-		
-        //1 tick = 30 minutes
-        zwave.configurationV1.configurationSet(parameterNumber: 3, size: 1, scaledConfigurationValue: 70).format(), // PIR Sensitivity 1-100
-        zwave.configurationV1.configurationSet(parameterNumber: 8, size: 1, scaledConfigurationValue: 3).format(), // PIR Redetect Interval. Applies only if in security mode
 		zwave.configurationV1.configurationSet(parameterNumber: 10, size: 1, scaledConfigurationValue: 1).format(), // Auto report Battery time 1-127, default 12
 		zwave.configurationV1.configurationSet(parameterNumber: 11, size: 1, scaledConfigurationValue: 2).format(), // Auto report Door/Window state time 1-127, default 12
 		zwave.configurationV1.configurationSet(parameterNumber: 12, size: 1, scaledConfigurationValue: 2).format(), // Auto report Illumination time 1-127, default 12
         zwave.configurationV1.configurationSet(parameterNumber: 13, size: 1, scaledConfigurationValue: 2).format(), // Auto report Temperature time 1-127, default 12
-        zwave.wakeUpV1.wakeUpIntervalSet(seconds: 1 * 3600, nodeid:zwaveHubNodeId).format(),						// Wake up every hour
-
-    ])
+        zwave.wakeUpV1.wakeUpIntervalSet(seconds: 1 * 3600, nodeid:zwaveHubNodeId).format()							// Wake up every hour
+    ], 1200)
 }
 
 def refresh() {
-        
-        /*
-        delayBetween([
-                zwave.switchBinaryV1.switchBinaryGet().format(),
-                zwave.sensorMultilevelV5.sensorMultilevelGet(sensorType:1, scale:1).format(),  // get temp in Fahrenheit
-                zwave.batteryV1.batteryGet().format(),
-                zwave.basicV1.basicGet().format()
-        ], 1200)
-        */
-        
         log.debug "refresh called"
         state.sec = 1
         secure(zwave.batteryV1.batteryGet())
@@ -240,4 +213,3 @@ def secure(cmd) {
     	return cmd.format()
     }
 }
-
