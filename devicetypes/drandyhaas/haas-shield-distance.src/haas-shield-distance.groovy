@@ -3,7 +3,9 @@ metadata {
 		capability "Actuator"
 		capability "Sensor"
 		capability "Relative Humidity Measurement"
-        
+		capability "Temperature Measurement"
+		capability "Illuminance Measurement"
+
         command "hello"
         command "getdist"
         attribute "greeting","string"
@@ -27,8 +29,38 @@ metadata {
 			state "default", label: 'getdist', action: "getdist", backgroundColor: "#ccccff"
 		}
         
+        		valueTile("temperature","device.temperature") {
+            	state "temperature",label:'${currentValue}°F',backgroundColors:[
+                	[value: 32, color: "#153591"],
+                    [value: 44, color: "#1e9cbb"],
+                    [value: 59, color: "#90d2a7"],
+					[value: 74, color: "#44b621"],
+					[value: 84, color: "#f1d801"],
+					[value: 92, color: "#d04e00"],
+					[value: 98, color: "#bc2323"]
+				]
+			}
+		valueTile(
+        	"humidity","device.humidity") {
+            	state "humidity",label:'RH ${currentValue}${unit}',unit:"%"
+			}
+		valueTile(
+        	"illuminance","device.illuminance") {
+            	state "luminosity",label:'${currentValue}${unit}', unit:"mm", backgroundColors:[
+                	[value: 0, color: "#000000"],
+                    [value: 1, color: "#060053"],
+                    [value: 3, color: "#3E3900"],
+                    [value: 12, color: "#8E8400"],
+					[value: 24, color: "#C5C08B"],
+					[value: 36, color: "#DAD7B6"],
+					[value: 128, color: "#F3F2E9"],
+                    [value: 1000, color: "#FFFFFF"]
+				]
+			}
+            
+        
 		main "message"
-		details(["greeting","getdist","message"])
+		details(["greeting","getdist","message","temperature","humidity","illuminance"])
 	}
 }
 
@@ -61,7 +93,7 @@ def getdist() {
 }
 
 def hello() {
-	log.debug "Hello World!"
+	log.debug "Get temperature and humidity, with hello..."
 	zigbee.smartShield(text: "hello").format()
 }
 
@@ -75,13 +107,12 @@ def parse(String description){
     }
     if (text == "ping"){
     	log.debug "got ping"
-        sendEvent(name: "humidity", value: state.level )
         return
     }
 
-	def mmunit = text.substring(text.length() - 2, text.length())
-    log.debug("mmunit is $mmunit")
-    if (mmunit=="mm"){
+	def tunit = text.substring(text.length() - 1, text.length())
+    log.debug("unit is $tunit")
+    if (tunit=="m"){
     	def level = text.substring(0, text.length() - 2)
     	log.debug("current level is $level")   
     
@@ -109,6 +140,15 @@ def parse(String description){
         }
         else state.level = level.toInteger()
         
+    }
+    else if (tunit=="%"){
+	    def tempF = text.substring(0, 5)
+    	def humid = text.substring(7, 12)
+    	log.debug "got temp and humidity: '$tempF' '$humid' "
+        sendEvent(name: "humidity", value: humid.toFloat() )
+        sendEvent(name: "temperature", value: tempF.toFloat() )
+        sendEvent(name: "illuminance", value: state.level )
+        return
     }
     
 	def result = createEvent(name: "greeting", value: text)

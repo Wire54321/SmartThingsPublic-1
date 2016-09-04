@@ -4,6 +4,8 @@ metadata {
 		capability "Switch"
 		capability "Sensor"
         command    "hello"
+        command    "push1"
+        command    "push2"
         attribute  "greeting","string"
         attribute  "weatherpressure", "string"
         attribute  "temp","number"
@@ -36,14 +38,34 @@ metadata {
 			state "default", label:'RAM ${currentValue} B free'
 		}
         
+        standardTile("hello", "device.hello", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
+			state "default", label: 'hello', action: "hello", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
+		} 
+        standardTile("push1", "device.push1", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
+			state "default", label: 'push1', action: "push1", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
+		} 
+        standardTile("push2", "device.push2", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
+			state "default", label: 'push2', action: "push2", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
+		} 
+        
 		main "temperature"
-		details(["temperature","pressure","ontime","switch","weatherpressure","greeting","freeram"])
+		details(["temperature","pressure","ontime","switch","weatherpressure","greeting","freeram","push1","push2","hello"])
 	}
 }
 
 def hello(){
     log.debug "sending hello"
 	zigbee.smartShield(text: "hello").format()
+}
+
+def push1(){
+    log.debug "sending push1"
+	zigbee.smartShield(text: "push1").format()
+}
+
+def push2(){
+    log.debug "sending push2"
+	zigbee.smartShield(text: "push2").format()
 }
 
 def on() {
