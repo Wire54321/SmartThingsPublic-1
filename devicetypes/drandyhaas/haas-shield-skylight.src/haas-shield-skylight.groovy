@@ -22,8 +22,8 @@ metadata {
 	// UI tile definitions
 	tiles {
 		standardTile("switch", "device.switch", width: 2, height: 2, canChangeIcon: true, canChangeBackground: true) {
-			state "on", label: 'on', action: "switch.off", icon: "st.vents.vent-open", backgroundColor: "#79b821"
-			state "off", label: 'off', action: "switch.on", icon: "st.vents.vent", backgroundColor: "#ffffff"
+			state "on", label: 'open', action: "switch.off", icon:"st.doors.garage.garage-open", backgroundColor:"#ffdf3f"
+			state "off", label: 'closed', action: "switch.on", icon:"st.doors.garage.garage-closed", backgroundColor:"#194775"
 		}
 		standardTile("hello", "device.hello", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
 			state "default", label: 'hello', action: "hello", icon: "st.switches.switch.off", backgroundColor: "#ccccff"

@@ -16,6 +16,8 @@ metadata {
 		capability "Battery"
 
 		command "unlockwtimeout"
+        
+        attribute "updated", "number"
 
 		fingerprint deviceId: "0x4003", inClusters: "0x98"
 		fingerprint deviceId: "0x4004", inClusters: "0x98"
@@ -46,15 +48,15 @@ metadata {
 		valueTile("battery", "device.battery", inactiveLabel: false, decoration: "flat") {
 			state "battery", label:'${currentValue}% battery', unit:""
 		}
-        valueTile("lastPoll", "device.lock", inactiveLabel: false, decoration: "flat") {
-			state "default", label:'${state.lastPoll} ', unit:""
-		}
+        valueTile("updatedlast", "device.updated", decoration: "flat", inactiveLabel: false) {
+			state "default", label:'${currentValue} updated'
+		} 
 		standardTile("refresh", "device.lock", inactiveLabel: false, decoration: "flat") {
 			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
 
 		main "toggle"
-		details(["toggle", "lock", "unlock", "battery", "refresh", "lastPoll"])
+		details(["toggle", "lock", "unlock", "battery", "refresh", "updatedlast"])
 	}
 }
 
@@ -107,6 +109,15 @@ def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityCommandsSupported
 }
 
 def zwaveEvent(DoorLockOperationReport cmd) {
+
+	if (!device.currentValue("updated")) {
+        sendEvent(name:"updated", value: 1)
+    }
+    else{
+        if (device.currentValue("updated") > 1000) sendEvent(name:"updated", value: 1)
+    	else sendEvent(name:"updated", value: device.currentValue("updated")+1)
+	}
+
 	def result = []
 	def map = [ name: "lock" ]
 	if (cmd.doorLockMode == 0xFF) {

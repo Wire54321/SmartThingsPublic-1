@@ -47,7 +47,7 @@ metadata {
 			state "default", label: 'bottom', action: "bottom", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
 		} 
         
-		main "switch"
+		main "message"
 		details(["switch","greeting","message","up","down","bottom"])
 	}
 }

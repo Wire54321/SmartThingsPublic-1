@@ -17,6 +17,7 @@ metadata {
 		capability "Sensor"
 
 		command "setAdjustedColor"
+        command "dorandom"
 
 		fingerprint profileId: "C05E", inClusters: "0000,0003,0004,0005,0006,0008,0300,1000", outClusters: "0019"
 	}

@@ -82,7 +82,7 @@ metadata {
 			state "configure", label:'', action:"configuration.configure", icon:"st.secondary.configure"
 		}
 
-		main(["motion", "temperature", "humidity", "illuminance"])
+		main(["temperature", "humidity", "illuminance"])
 		details(["motion", "temperature", "humidity", "illuminance", "battery", "configure"])
 	}
 }

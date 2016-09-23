@@ -153,7 +153,7 @@ metadata {
 			state "default", label:'${currentValue} lux'
 		}
 
-		main(["temperature"])
+		main("temperature")
 		details(["temperature", "humidity", "weatherIcon","feelsLike","wind","weather", "city","percentPrecip", "refresh","alert","pressure","rise","set","light"])}
 }
 

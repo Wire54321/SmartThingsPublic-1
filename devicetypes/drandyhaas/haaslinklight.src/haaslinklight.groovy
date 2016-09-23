@@ -72,7 +72,7 @@ def parse(String description) {
 	}
     if (description?.startsWith("read attr")) {
     	log.debug description[-2..-1]
-        def i = Math.round(convertHexToInt(description[-2..-1]) / 100 * 100 )
+        def i = Math.round(convertHexToInt(description[-2..-1]) / 256 * 100 )
         
 		sendEvent( name: "level", value: i )
     }
@@ -112,7 +112,7 @@ def setLevel(value) {
 	}
 
 	sendEvent(name: "level", value: value)
-	def level = new BigInteger(Math.round(value * 100 / 100).toString()).toString(16)
+	def level = new BigInteger(Math.round(value * 255 / 100).toString()).toString(16)
 	cmds << "st cmd 0x${device.deviceNetworkId} 1 8 4 {${level} 0000}"
 
 	log.debug "setlevel $cmds "
