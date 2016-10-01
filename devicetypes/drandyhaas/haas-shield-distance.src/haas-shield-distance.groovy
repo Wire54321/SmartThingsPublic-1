@@ -119,6 +119,7 @@ def parse(String description){
         return
     }
     
+    /*
     def talarm = text.substring(0, 3)
     log.debug("alarm is $talarm")
     if (talarm=="wet"){
@@ -126,6 +127,7 @@ def parse(String description){
        sendEvent( name: "water", value: "wet" )
        return
     }
+    */
 
 	def tunit = text.substring(text.length() - 1, text.length())
     log.debug("unit is $tunit")
@@ -164,9 +166,13 @@ def parse(String description){
     	def humid = text.substring(7, 12)
         def wetness = text.substring(14, 19)
     	log.debug "got temp and humidity and wetness : '$tempF' '$humid' '$wetness' "
-        if (wetness.toFloat()>800.0){
+        if (wetness.toFloat()>900.0){
             log.debug "now dry"
         	sendEvent( name: "water", value: "dry" )
+		}
+        if (wetness.toFloat()<700.0){
+            log.debug "wet wet wet"
+        	sendEvent( name: "water", value: "wet" )
 		}
         sendEvent(name: "humidity", value: humid.toFloat() )
         sendEvent(name: "temperature", value: tempF.toFloat() )
