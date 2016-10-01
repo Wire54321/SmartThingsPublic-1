@@ -5,10 +5,12 @@ metadata {
 		capability "Relative Humidity Measurement"
 		capability "Temperature Measurement"
 		capability "Illuminance Measurement"
+		capability "Water Sensor"
 
         command "hello"
         command "getdist"
         attribute "greeting","string"
+        attribute "wetness","number"
 	}
 
 	// Simulator metadata
@@ -29,8 +31,8 @@ metadata {
 			state "default", label: 'getdist', action: "getdist", backgroundColor: "#ccccff"
 		}
         
-        		valueTile("temperature","device.temperature") {
-            	state "temperature",label:'${currentValue}°F',backgroundColors:[
+        valueTile("temperature","device.temperature") {
+            state "temperature",label:'${currentValue}°F',backgroundColors:[
                 	[value: 32, color: "#153591"],
                     [value: 44, color: "#1e9cbb"],
                     [value: 59, color: "#90d2a7"],
@@ -44,6 +46,14 @@ metadata {
         	"humidity","device.humidity") {
             	state "humidity",label:'RH ${currentValue}${unit}',unit:"%"
 			}
+        valueTile(
+        	"wetness","wetness") {
+            	state "wetness",label:'wet ${currentValue}'
+			}
+        standardTile("water", "device.water", width: 1, height: 1) {
+			state "dry", icon:"st.alarm.water.dry", backgroundColor:"#ffffff"
+			state "wet", icon:"st.alarm.water.wet", backgroundColor:"#53a7c0"
+		}
 		valueTile(
         	"illuminance","device.illuminance") {
             	state "luminosity",label:'${currentValue}${unit}', unit:"mm", backgroundColors:[
@@ -56,11 +66,10 @@ metadata {
 					[value: 128, color: "#F3F2E9"],
                     [value: 1000, color: "#FFFFFF"]
 				]
-			}
-            
+		}
         
 		main "message"
-		details(["greeting","getdist","message","temperature","humidity","illuminance"])
+		details(["greeting","getdist","message","temperature","humidity","illuminance","water","wetness"])
 	}
 }
 
@@ -109,6 +118,14 @@ def parse(String description){
     	log.debug "got ping"
         return
     }
+    
+    def talarm = text.substring(0, 3)
+    log.debug("alarm is $talarm")
+    if (talarm=="wet"){
+       log.debug("got wet alarm")
+       sendEvent( name: "water", value: "wet" )
+       return
+    }
 
 	def tunit = text.substring(text.length() - 1, text.length())
     log.debug("unit is $tunit")
@@ -129,8 +146,8 @@ def parse(String description){
         */
         
         if (level.toInteger()>1000){
-        log.debug "level too high to make sense"
-        return
+          log.debug "level too high to make sense"
+          return
         }
         
         //don't change unless it is significant
@@ -141,12 +158,19 @@ def parse(String description){
         else state.level = level.toInteger()
         
     }
-    else if (tunit=="%"){
+    else if (tunit=="V"){
+        // 71.4F_ 40.7%_933.0mV
 	    def tempF = text.substring(0, 5)
     	def humid = text.substring(7, 12)
-    	log.debug "got temp and humidity: '$tempF' '$humid' "
+        def wetness = text.substring(14, 19)
+    	log.debug "got temp and humidity and wetness : '$tempF' '$humid' '$wetness' "
+        if (wetness.toFloat()>800.0){
+            log.debug "now dry"
+        	sendEvent( name: "water", value: "dry" )
+		}
         sendEvent(name: "humidity", value: humid.toFloat() )
         sendEvent(name: "temperature", value: tempF.toFloat() )
+        sendEvent(name: "wetness", value: wetness.toFloat() )
         sendEvent(name: "illuminance", value: state.level )
         return
     }
