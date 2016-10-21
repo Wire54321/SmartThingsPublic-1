@@ -128,8 +128,15 @@ def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd, results) {
 			}
 			
 			// Check battery if we don't have a recent battery event
-			def prevBattery = device.currentState("battery")
-			if (!prevBattery || (new Date().time - prevBattery.date.time)/60000 >= 60 * 53) {
+            if (!(state.batterytime)) {
+                state.batterytime = new Date().time
+                log.debug "no prev batterytime, now $state.batterytime "
+            }
+            def bdiff = (new Date().time - state.batterytime)/60000
+            log.debug "bat time diff: $bdiff"
+			if (bdiff > 60 * 24) {//24 hours?
+            	log.debug "get battery"
+                state.batterytime = new Date().time
 				results << new physicalgraph.device.HubAction(zwave.batteryV1.batteryGet().format())
 			}
 			break
@@ -171,6 +178,10 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd, results
 	} else {
 		map.value = cmd.batteryLevel
 	}
+    if (cmd.batteryLevel <= 80) {
+		map.value = 10
+		map.descriptionText = "$device.displayName battery was just $cmd.batteryLevel % !"
+    }
 	results << createEvent(map)
 }
 
