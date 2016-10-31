@@ -38,7 +38,7 @@ metadata {
         valueTile("updatedlast", "device.updated", decoration: "flat", inactiveLabel: false) {
 			state "default", label:'${currentValue} updated'
 		} 
-		main (["water", "battery"])
+		main ("battery")
 		details(["water", "battery", "updatedlast", "configure"])
 	}
 }

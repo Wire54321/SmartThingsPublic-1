@@ -147,8 +147,12 @@ def parse(String description){
         //
         */
         
+        if (level.toInteger()<2){
+          log.debug "level $level too low to make sense"
+          return
+        }
         if (level.toInteger()>1000){
-          log.debug "level too high to make sense"
+          log.debug "level $level too high to make sense"
           return
         }
         

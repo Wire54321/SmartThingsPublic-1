@@ -132,8 +132,8 @@ def zwaveEvent(physicalgraph.zwave.commands.alarmv2.AlarmReport cmd, results) {
                 state.batterytime = new Date().time
                 log.debug "no prev batterytime, now $state.batterytime "
             }
-            def bdiff = (new Date().time - state.batterytime)/60000
-            log.debug "bat time diff: $bdiff"
+            def bdiff = (new Date().time - state.batterytime)/60000 // the time in minutes (ms/1000/60)
+            log.debug "bat time diff: $bdiff minutes"
 			if (bdiff > 60 * 24) {//24 hours?
             	log.debug "get battery"
                 state.batterytime = new Date().time
