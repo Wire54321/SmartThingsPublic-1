@@ -18,6 +18,9 @@ metadata {
 		command "unlockwtimeout"
         
         attribute "updated", "number"
+        attribute "code1", "number"
+        attribute "code2", "number"
+        attribute "code3", "number"
 
 		fingerprint deviceId: "0x4003", inClusters: "0x98"
 		fingerprint deviceId: "0x4004", inClusters: "0x98"
@@ -54,9 +57,18 @@ metadata {
 		standardTile("refresh", "device.lock", inactiveLabel: false, decoration: "flat") {
 			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
+        valueTile("code1", "device.code1", decoration: "flat", inactiveLabel: false) {
+			state "default", label:'1: ${currentValue}'
+		}
+        valueTile("code2", "device.code2", decoration: "flat", inactiveLabel: false) {
+			state "default", label:'2: ${currentValue}'
+		}
+        valueTile("code3", "device.code3", decoration: "flat", inactiveLabel: false) {
+			state "default", label:'3: ${currentValue}'
+		}
 
 		main "toggle"
-		details(["toggle", "lock", "unlock", "battery", "refresh", "updatedlast"])
+		details(["toggle", "lock", "unlock", "battery", "refresh", "updatedlast","code1","code2","code3"])
 	}
 }
 
@@ -510,6 +522,9 @@ def poll() {
 		if(cmds) cmds << "delay 6000"
 	}
 	log.debug "poll is sending ${cmds.inspect()}, state: ${state.inspect()}"
+    sendEvent(name:"code1", value: state.code1)
+    sendEvent(name:"code2", value: state.code2)
+    sendEvent(name:"code3", value: state.code3)
 	device.activity()  // workaround to keep polling from being shut off
 	cmds ?: null
 }
