@@ -30,7 +30,8 @@ preferences {
 
 def installed()
 {
-	subscribe(lock1, "lock.unlock", contactOpenHandler)
+	subscribe(locks, "lock", contactOpenHandler)
+    log.debug "subscribed to lock for $lockindex on locks $locks "
 }
 
 def updated()
@@ -39,15 +40,30 @@ def updated()
 	installed()
 }
 
+import groovy.json.JsonSlurper
 def contactOpenHandler(evt) {
-     log.debug "$evt.value: $evt, $settings"
-     log.trace "Turning on switches: $switcheson"
-     switcheson.on()
-     log.trace "Turning off switches: $switchesoff"
-     switchesoff.off()
-     runIn(900, "turnEmOff")
-     sendPush "Unlocked with code $lockindex so disarming!"
-     sendLocationEvent(name: "alarmSystemStatus", value: "off")
+     def lat = locks.latestValue("lock")
+     def val = evt.value
+     log.debug "value: $val, settings: $settings, latest: $lat"
+     if (val=="unlocked" && evt.data){
+       log.debug "evt.data: $evt.data "
+       sendPush("evt.data: $evt.data ") 
+       def codeData = new JsonSlurper().parseText(evt.data)
+       log.debug "codedata: $codedata "
+       sendPush("codeData: $codedata ") 
+       def codeDataI = codeData.inspect()
+       log.debug "codedataI: $codedataI "
+       sendPush("codeDataI: $codedataI ") 
+       if (false){//disable for now
+         log.trace "Turning on switches: $switcheson"
+         switcheson.on()
+         log.trace "Turning off switches: $switchesoff"
+         switchesoff.off()
+         runIn(900, "turnEmOff")
+         sendPush "Unlocked with code $lockindex so disarming!"
+         sendLocationEvent(name: "alarmSystemStatus", value: "off")
+       }
+     }
 }
 
 def turnEmOff() {
