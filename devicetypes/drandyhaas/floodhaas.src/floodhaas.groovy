@@ -55,7 +55,7 @@ def parse(String description) {
 
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd)
 {
-    log.debug("woke up")
+    //log.debug("woke up")
     if (!device.currentValue("updated")) {
         sendEvent(name:"updated", value: 1)
     }
@@ -63,13 +63,16 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd)
         if (device.currentValue("updated") > 1000) sendEvent(name:"updated", value: 1)
     	else sendEvent(name:"updated", value: device.currentValue("updated")+1)
 	}
-	def result = [createEvent(descriptionText: "${device.displayName} woke up", isStateChange: false)]
+	def result = [createEvent(descriptionText: "${device.displayName} woke update", isStateChange: false)]
 	def now = new Date().time
 	if (!state.battreq || now - state.battreq > 53*60*60*1000) {
 		state.battreq = now
+        log.debug "getting battery"
 		result << response(zwave.batteryV1.batteryGet())
 	} else {
-		result << response(zwave.wakeUpV1.wakeUpNoMoreInformation())
+    	log.debug "setting as dry, then going to sleep"
+        sendEvent(name:"water", value: "dry")
+    	result << response(zwave.wakeUpV1.wakeUpNoMoreInformation())
 	}
 	result
 }
