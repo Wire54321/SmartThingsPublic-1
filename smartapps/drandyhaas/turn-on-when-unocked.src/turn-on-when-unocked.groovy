@@ -31,6 +31,7 @@ preferences {
 def installed()
 {
 	subscribe(locks, "lock", contactOpenHandler)
+    subscribe(app, appTouch)
     log.debug "subscribed to lock for $lockindex on locks $locks "
 }
 
@@ -41,31 +42,44 @@ def updated()
 }
 
 import groovy.json.JsonSlurper
-def contactOpenHandler(evt) {
-     def lat = locks.latestValue("lock")
-     def val = evt.value
-     log.debug "value: $val, settings: $settings, latest: $lat"
-     if (val=="unlocked" && evt.data){
-       log.debug "evt.data: $evt.data "
-       sendPush("evt.data: $evt.data ") 
-       def codeData = new JsonSlurper().parseText(evt.data)
-       log.debug "codedata: $codedata "
-       sendPush("codeData: $codedata ") 
-       def codeDataI = codeData.inspect()
-       log.debug "codedataI: $codedataI "
-       sendPush("codeDataI: $codedataI ") 
-       if (false){//disable for now
-         log.trace "Turning on switches: $switcheson"
+def appTouch(evt){//test things out...
+	def str = '{"usedCode":3,"microDeviceTile":{"type":"standard","icon":"st.locks.lock.unlocked","backgroundColor":"#ffffff"}}'
+	log.debug "str: $str "
+    def results = new groovy.json.JsonSlurper().parseText(str)
+    log.debug "results: $results "
+    def usedcode = results.usedCode as Integer
+    log.debug "used code $usedcode and lockindex $lockindex "
+    if (usedcode == lockindex){
+    	log.debug "matched!"
+    }
+}
+def contactOpenHandler(evt) {//for real...
+    def lat = locks.latestValue("lock")
+    def val = evt.value
+    log.debug "value: $val, settings: $settings, latest: $lat"
+    if (val=="unlocked" && evt.data){
+    
+       def str = evt.data
+	   log.debug "str: $str "
+       def results = new groovy.json.JsonSlurper().parseText(str)
+       log.debug "results: $results "
+       def usedcode = results.usedCode as Integer
+       log.debug "used code $usedcode and lockindex $lockindex "
+       if (usedcode == lockindex){
+
+	     log.trace "Turning on switches: $switcheson"
          switcheson.on()
          log.trace "Turning off switches: $switchesoff"
          switchesoff.off()
-         runIn(900, "turnEmOff")
-         sendPush "Unlocked with code $lockindex so disarming!"
+         runIn(900, "turnEmOff") //900 sec is 15 min
+         sendPush "Unlocked with code $usedcode and disarming!"
          sendLocationEvent(name: "alarmSystemStatus", value: "off")
+         setLocationMode("Home")
        }
-     }
+    }
 }
-
 def turnEmOff() {
-     switcheson.off()
+	log.debug "turnEmOff: $switcheson"
+    sendPush "turnEmOff: $switcheson"
+	switcheson.off()
 }
