@@ -49,7 +49,7 @@ def appTouch(evt){//test things out...
     log.debug "results: $results "
     def usedcode = results.usedCode as Integer
     log.debug "used code $usedcode and lockindex $lockindex "
-    if (usedcode == lockindex){
+    if (usedcode == lockindex || lockindex<=0){
     	log.debug "matched!"
     }
 }
@@ -65,7 +65,7 @@ def contactOpenHandler(evt) {//for real...
        log.debug "results: $results "
        def usedcode = results.usedCode as Integer
        log.debug "used code $usedcode and lockindex $lockindex "
-       if (usedcode == lockindex){
+       if (usedcode == lockindex || lockindex<=0){
 
 	     log.trace "Turning on switches: $switcheson"
          switcheson.on()
