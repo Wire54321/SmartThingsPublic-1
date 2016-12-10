@@ -202,6 +202,10 @@ def refresh() {
         log.debug "refresh called"
         state.sec = 1
         secure(zwave.batteryV1.batteryGet())
+       
+       sendEvent(name: "contact", value: "closed")
+       //sendEvent(name: "tamper", value: "tamper")
+       sendEvent(name: "tamper", value: "clear")
 }
 
 def secure(cmd) {
