@@ -11,10 +11,10 @@ definition(
 preferences {
         
 	section("Choose switch to monitor... ") {
-		input "myswitch",  "capability.switch", required: false
+		input "myswitch",  "capability.switch", required: false, multiple: true
 	}
     section("Choose button to monitor... ") {
-		input "mybutton",  "capability.button", required: false
+		input "mybutton",  "capability.button", required: false, multiple: true
 	}
     section("Choose device to control... ") {
 		input "mydevice",  "capability.switch"
