@@ -144,7 +144,6 @@ def parse(String description) {
    		sendEvent(name: "switch", value: "on")
     }
     
-    log.debug "check temp..."
     if (result.containsKey("cpu_temp")) {
     	log.debug "temp: ${result.cpu_temp.toDouble().round()}"
         log.debug "temp: ${celsiusToFahrenheit(result.cpu_temp.toDouble().round())} F"
@@ -206,7 +205,7 @@ private getRPiData() {
 // ------------------------------------------------------------------
 
 private postAction(uri){
-  setDeviceNetworkId(ip,port)  
+  //setDeviceNetworkId(ip,port)  
   
   def userpass = encodeCredentials(username, password)
   //log.debug("userpass: " + userpass) 
