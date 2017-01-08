@@ -66,7 +66,9 @@ def installed()
     subscribe(thermostat, "heatingSetpoint", handler)
     subscribe(thermostat, "coolingSetpoint", handler)
     subscribe(hottub, "temperature", handler)
-	subscribe(app, appTouch)
+    subscribe(hottub, "message", handler)
+    subscribe(hottub, "greeting", handler)
+    subscribe(app, appTouch)
 }
 
 def updated()
@@ -77,6 +79,11 @@ def updated()
 
 def handler(evt)
 {
+    log.debug "evt: $evt.value $evt.name $evt.displayName "
+	if ("greeting" == evt.name && "Arduino Hottub" == evt.displayName) {
+       log.debug "message $evt.value from hottub"
+       sendPush "hotttub says $evt.value "
+    }
 	def now = new Date().time //milliseconds
     log.debug "${now} : ${state.lastRun}"
     if (!state.lastRun) state.lastRun = now

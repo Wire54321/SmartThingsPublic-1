@@ -181,7 +181,7 @@ def executeHandlers(buttonNumber, value) {
     def buttons = find('buttons', buttonNumber, value)
 	if (buttons != null) {
        log.debug "pushing $buttons "
-       buttons.pushed()
+       buttons.push1()
     }
 
 	def locks = find('locks', buttonNumber, value)
