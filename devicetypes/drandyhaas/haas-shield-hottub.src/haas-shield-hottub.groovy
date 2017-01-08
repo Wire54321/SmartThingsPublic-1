@@ -31,8 +31,8 @@ metadata {
 	// UI tile definitions
 	tiles {
 		standardTile("switch", "device.switch", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
-			state "on", label: 'light on', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
-			state "off", label: 'light off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
+			state "on", label: 'relay on', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
+			state "off", label: 'relay off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
 		}
 
 		standardTile("greeting", "device.greeting", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
@@ -87,18 +87,22 @@ metadata {
 			state "setHeatingSetpoint", action:"quickSetHeat", backgroundColor:"#d04e00"
 		}
         valueTile("heatingSetpoint", "device.heatingSetpoint", inactiveLabel: false, decoration: "flat") {
-			state "heat", label:'pos ${currentValue}', backgroundColor:"#ffffff"
+			state "heat", label:'pos: ${currentValue}', backgroundColor:"#ffffff"
 		}
         
-        standardTile("ph", "device.greeting", width: 2, height: 1, canChangeIcon: true, canChangeBackground: true) {
+        standardTile("ph", "device.greeting", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
 			state "default", label: 'get ph', action: "getph", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
 		}  
-        standardTile("orp", "device.greeting", width: 2, height: 1, canChangeIcon: true, canChangeBackground: true) {
+        standardTile("orp", "device.greeting", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
 			state "default", label: 'get orp', action: "getorp", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
-		}  
+		}
+        
+        valueTile("setpoint", "device.setpoint", inactiveLabel: false) {
+			state "default", label:'setpoint: ${currentValue}', unit:""
+		}
         
 		main "temperature"
-		details(["temperature","outertemp","innertemp","heatSliderControl","heatingSetpoint","ph","phval","orp","orpval","switch","greeting","message"])
+		details(["temperature","outertemp","innertemp","heatSliderControl","heatingSetpoint","ph","phval","setpoint","switch","greeting","message","orp","orpval"])
 	}
 }
 
@@ -167,6 +171,8 @@ def parse(String description){
     if (text == "ping"){//this seems to come in once per minute
         def hp = device.currentValue("heatingSetpoint") 
     	log.debug "got ping, heatingSetpoint is ${hp}"
+        
+        sendEvent(name:"setpoint", value:"$hp")
         
         //remind the device of its setpoint sometimes
         def ten = (new Date()).time % 10 
