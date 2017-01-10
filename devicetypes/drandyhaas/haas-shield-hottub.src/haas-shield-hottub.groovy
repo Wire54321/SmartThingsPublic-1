@@ -130,13 +130,15 @@ Map parse(String description) {
 }
 
 def on() {
-    log.debug "On"
+    log.debug "switch on"
     zigbee.smartShield(text: "on").format()
+    sendEvent(name:"switch", value:"on")
 }
 
 def off() {
-    log.debug "Off"
+    log.debug "switch off"
 	zigbee.smartShield(text: "off").format()
+    sendEvent(name:"switch", value:"off")
 }
 
 def hello() {
@@ -172,7 +174,7 @@ def parse(String description){
         def hp = device.currentValue("heatingSetpoint") 
     	log.debug "got ping, heatingSetpoint is ${hp}"
         
-        sendEvent(name:"setpoint", value:"$hp")
+        sendEvent(name:"setpoint", value:"$hp") // really this should be sent back by the arduino
         
         //remind the device of its setpoint sometimes
         def ten = (new Date()).time % 10 
