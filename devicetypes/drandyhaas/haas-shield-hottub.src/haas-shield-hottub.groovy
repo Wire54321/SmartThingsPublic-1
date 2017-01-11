@@ -31,8 +31,8 @@ metadata {
 	// UI tile definitions
 	tiles {
 		standardTile("switch", "device.switch", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
-			state "on", label: 'relay on', action: "switch.off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
-			state "off", label: 'relay off', action: "switch.on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
+			state "on", label: 'relay on', action: "off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
+			state "off", label: 'relay off', action: "on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
 		}
 
 		standardTile("greeting", "device.greeting", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
@@ -132,13 +132,11 @@ Map parse(String description) {
 def on() {
     log.debug "switch on"
     zigbee.smartShield(text: "on").format()
-    sendEvent(name:"switch", value:"on")
 }
 
 def off() {
     log.debug "switch off"
 	zigbee.smartShield(text: "off").format()
-    sendEvent(name:"switch", value:"off")
 }
 
 def hello() {
@@ -182,6 +180,9 @@ def parse(String description){
         if (ten == 1) quickSetHeat(hp)
         return
     }
+    
+    if (text == "on") sendEvent(name:"switch", value:"on")
+    if (text == "off") sendEvent(name:"switch", value:"off")  
     
     def result = createEvent(name: "greeting", value: text)
 
