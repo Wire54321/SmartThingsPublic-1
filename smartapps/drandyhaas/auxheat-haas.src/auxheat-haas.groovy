@@ -80,7 +80,7 @@ def updated()
 def handler(evt)
 {
     log.debug "evt: $evt.value $evt.name $evt.displayName "
-	if ("greeting" == evt.name && "Arduino Hottub" == evt.displayName) {
+	if ("greeting" == evt.name && "Hottub" == evt.displayName) {
        log.debug "message $evt.value from hottub"
        sendPush "hotttub says $evt.value "
     }
