@@ -20,7 +20,7 @@ preferences {
 		input "otherthermostats", "capability.thermostat", multiple: true
 	}
     
-    section("Choose hottub temp... ") {
+    section("Choose hottub ... ") {
 		input "hottub", "capability.temperatureMeasurement", multiple: false
 	}
     section("Choose the weather to update... ") {
@@ -83,7 +83,14 @@ def handler(evt)
 	if ("greeting" == evt.name && "Hottub" == evt.displayName) {
        log.debug "message $evt.value from hottub"
        sendPush "hotttub says $evt.value "
+       if ("on" == evt.value){
+          log.debug "will turn off in 1 hour"
+          sendPush "will turn off in 1 hour"
+          runIn(3600, tuboff) // turn off tub in 3600s (1 hour)
+       }
     }
+    
+    //check for other changes no more than every 10 minutes
 	def now = new Date().time //milliseconds
     log.debug "${now} : ${state.lastRun}"
     if (!state.lastRun) state.lastRun = now
@@ -141,6 +148,10 @@ def ph(){
 def orp(){
     log.debug "update orp"
     hottub.getorp()
+}
+def tuboff(){
+    log.debug "turn off hottub"
+    hottub.off()
 }
 
 // catchall
