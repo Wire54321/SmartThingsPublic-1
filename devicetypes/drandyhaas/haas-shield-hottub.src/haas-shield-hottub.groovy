@@ -3,7 +3,9 @@ metadata {
 		capability "Actuator"
 		capability "Switch"
 		capability "Sensor"
+		capability "Relative Humidity Measurement"
 		capability "Temperature Measurement"
+		capability "Illuminance Measurement"
 
         command "quickSetHeat"
         command "hello"
@@ -77,10 +79,10 @@ metadata {
 			]
 		}
         valueTile("phval", "device.pH", inactiveLabel: false) {
-			state "default", label:'pH:${currentValue}'
+			state "default", label:'pH:${currentValue}', action: "getph"
 		}
         valueTile("orpval", "device.ORP", inactiveLabel: false) {
-			state "default", label:'ORP:${currentValue}'
+			state "default", label:'ORP:${currentValue}', action: "getorp"
 		}
         
         controlTile("heatSliderControl", "device.heatingSetpoint", "slider", height: 1, width: 2, inactiveLabel: false) {
@@ -90,19 +92,8 @@ metadata {
 			state "heat", label:'pos: ${currentValue}', backgroundColor:"#ffffff"
 		}
         
-        standardTile("ph", "device.greeting", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
-			state "default", label: 'get ph', action: "getph", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
-		}  
-        standardTile("orp", "device.greeting", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
-			state "default", label: 'get orp', action: "getorp", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
-		}
-        
-        valueTile("setpoint", "device.setpoint", inactiveLabel: false) {
-			state "default", label:'setpoint: ${currentValue}', unit:""
-		}
-        
 		main "temperature"
-		details(["temperature","outertemp","innertemp","heatSliderControl","heatingSetpoint","ph","phval","setpoint","switch","greeting","message","orp","orpval"])
+		details(["temperature","outertemp","innertemp","heatSliderControl","heatingSetpoint","phval","orpval","switch","greeting","message"])
 	}
 }
 
@@ -153,11 +144,10 @@ def getorp() {
 }
 
 def quickSetHeat(degrees) {
-    sendEvent(name: "heatingSetpoint", value: degrees)
-	degrees=(int)(1.8*(100-degrees));//to go from 0-180, to actually turn knob
+	def pos = (int)(1.8*(100-degrees));//to go from 0-180, to actually turn knob
     //180 is coldest, 0 is hotest
-	log.debug "set heat knob pos at $degrees "
-    zigbee.smartShield(text: "servopos_${degrees}").format()
+	log.debug "set heat knob pos at $pos "
+    zigbee.smartShield(text: "servopos_${pos}").format()
 }
 
 // Parse incoming device messages to generate events
@@ -172,8 +162,6 @@ def parse(String description){
         def hp = device.currentValue("heatingSetpoint") 
     	log.debug "got ping, heatingSetpoint is ${hp}"
         
-        sendEvent(name:"setpoint", value:"$hp") // really this should be sent back by the arduino
-        
         //remind the device of its setpoint sometimes
         def ten = (new Date()).time % 10 
         log.debug "random mod is $ten "
@@ -187,7 +175,7 @@ def parse(String description){
     def result = createEvent(name: "greeting", value: text)
 
 	def theunit = text.substring(text.length() - 1, text.length())
-    log.debug("theunit is $Funit")
+    log.debug("theunit is $theunit")
     if (theunit=="F"){
     	//it's a temperature reading, find out which one
 		def id = text.substring(0, text.lastIndexOf("_"))
@@ -195,11 +183,8 @@ def parse(String description){
         def temp = text.substring(text.lastIndexOf("_")+1,text.length() - 1)
     	log.debug("current temp is $temp")
         if (temp!="185.0"){
-        if (id=="21635") {
-        //temp="92.4"
-        result = createEvent(name: "temperature", value: temp.toFloat())
-        }
-        if (id=="248134") result = createEvent(name: "outertemp", value: temp.toFloat())
+        if (id=="248134") result = createEvent(name: "temperature", value: temp.toFloat())
+        if (id=="21635")  result = createEvent(name: "outertemp", value: temp.toFloat())
         if (id=="208173") result = createEvent(name: "innertemp", value: temp.toFloat())
         }
     }
@@ -207,23 +192,25 @@ def parse(String description){
     	//it's a pH reading
 		def ph = (text.substring(0, text.length()-2)).toFloat()// -PH
         log.debug "got ph $ph"
-        def phc = (0.0178 * (ph) - 1.889).round(2);
-       	log.debug "got phconst $phc"
-		def tempc=((device.currentValue("temperature").toFloat()-32.0)/1.8).round(2);
-		def pht = (7.0 - (2.5 - ph/204.8) / (0.257179 + 0.000941468 * tempc)).round(2);
-        log.debug "got phtemp $pht for temp ${tempc}C"
-        def calib = 0.05 // -0.96
-        def phtc = (calib + pht).round(2)
-        log.debug "got phtempcalib $phtc for calib $calib"
-        result = createEvent(name: "pH", value: phtc)
+		//def tempc=((device.currentValue("temperature").toFloat()-32.0)/1.8).round(2);
+		def pht = (ph).round(1);
+        //log.debug "got phtemp $pht for temp ${tempc}C"        
+        sendEvent(name: "humidity", value: pht )
+        result = createEvent(name: "pH", value: pht)
     }
     else if (theunit=="P"){
     	//it's an ORP reading
-		def orp = (text.substring(0, text.length()-3)).toFloat()// -ORP
-        log.debug "got orp  $orp "
-        def orpc = ((2.5 - orp / 204.8) / 1.037).round(2);// in V
-       	log.debug "got orpc $orpc "
-        result = createEvent(name: "ORP", value: orpc)
+		def orp = (text.substring(0, text.length()-3)).toFloat().round()// -ORP
+        log.debug "got orp $orp "
+        sendEvent(name: "illuminance", value: orp )
+        result = createEvent(name: "ORP", value: orp)
+    }
+    else if (theunit=="d"){
+    	def pos = (text.substring(0, text.length()-1)).toFloat()// pos of the servo
+        log.debug "got pos $pos"
+        def degrees=(100.0-(pos/1.8)).round(1);//to go from pos 0-180, to degrees
+        log.debug "so heatingSetpoint is $degrees "
+        result = createEvent(name: "heatingSetpoint", value: degrees)
     }
 	
     log.debug result?.descriptionText
