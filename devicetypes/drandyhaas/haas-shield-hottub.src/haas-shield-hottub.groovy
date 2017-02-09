@@ -18,6 +18,7 @@ metadata {
         attribute "pH","string"
         attribute "ORP","string"
         attribute "heatingSetpoint","number"
+        attribute "freeram","number"
 	}
 
 	// Simulator metadata
@@ -91,9 +92,12 @@ metadata {
         valueTile("heatingSetpoint", "device.heatingSetpoint", inactiveLabel: false, decoration: "flat") {
 			state "heat", label:'pos: ${currentValue}', backgroundColor:"#ffffff"
 		}
+        valueTile("freeram", "device.freeram", inactiveLabel: false) {
+			state "default", label:'RAM ${currentValue} B free'
+		}
         
 		main "temperature"
-		details(["temperature","outertemp","innertemp","heatSliderControl","heatingSetpoint","phval","orpval","switch","greeting","message"])
+		details(["temperature","outertemp","innertemp","heatSliderControl","heatingSetpoint","phval","orpval","switch","greeting","message","freeram"])
 	}
 }
 
@@ -205,13 +209,18 @@ def parse(String description){
         sendEvent(name: "illuminance", value: orp )
         result = createEvent(name: "ORP", value: orp)
     }
-    else if (theunit=="d"){
+    else if (theunit=="d" && text!="Startup cold"){
     	def pos = (text.substring(0, text.length()-1)).toFloat()// pos of the servo
         log.debug "got pos $pos"
         def degrees=(100.0-(pos/1.8)).round(1);//to go from pos 0-180, to degrees
         log.debug "so heatingSetpoint is $degrees "
         result = createEvent(name: "heatingSetpoint", value: degrees)
     }
+    else if (theunit=="B"){
+    	def val = (text.substring(0, text.length()-1)).toFloat()// freeram
+        log.debug "got freeram $val"
+        result = createEvent(name: "freeram", value: val.round() )
+	}
 	
     log.debug result?.descriptionText
     return result
