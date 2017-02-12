@@ -110,17 +110,17 @@ def appTouch(evt)
 
 	//thermostat.setHeatingSetpoint(heatingSetpoint)
 	//thermostat.setCoolingSetpoint(coolingSetpoint)
-	thermostat.poll()
+	//thermostat.poll()
     
     //update the heater settings
     checkforchanges()
     
-    //update other thermostats (they are in battery saving mode)
-    def myit=0
-    state.pollnum=0
+    //update thermostats (they are in battery saving mode)
+    def myit=1
+    state.pollnum=0 //will start update with thermo 0
     for (th in otherthermostats){
-       def myits = 5+ myit*5;
-       log.debug "schedule polling ${myit} in ${myits}s"
+       def myits = myit*25; //25s apart
+       log.debug "schedule polling thermo ${myit} in ${myits}s"
        runIn(myits, pollit, [overwrite: false]) // will run th.poll()
        myit=myit+1
     }

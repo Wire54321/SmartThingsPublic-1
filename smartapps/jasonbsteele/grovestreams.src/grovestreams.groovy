@@ -29,10 +29,14 @@ definition(
 preferences {
  
         section("Log devices...") {
+        
+        // http://docs.smartthings.com/en/latest/capabilities-reference.html 
+        
                 input "temperatures", "capability.temperatureMeasurement", title: "Temperatures", required:false, multiple: true
                 input "humidities", "capability.relativeHumidityMeasurement", title: "Humidities", required: false, multiple: true
                 input "contacts", "capability.contactSensor", title: "Doors open/close", required: false, multiple: true
                 input "accelerations", "capability.accelerationSensor", title: "Accelerations", required: false, multiple: true
+                input "luminosities", "capability.illuminanceMeasurement", title: "Luminosities", required: false, multiple: true
                 input "motions", "capability.motionSensor", title: "Motions", required: false, multiple: true
                 input "presence", "capability.presenceSensor", title: "Presence", required: false, multiple: true
                 input "switches", "capability.switch", title: "Switches", required: false, multiple: true
@@ -63,6 +67,7 @@ def initialize() {
         subscribe(humidities, "humidity", handleHumidityEvent)
         subscribe(contacts, "contact", handleContactEvent)
         subscribe(accelerations, "acceleration", handleAccelerationEvent)
+        subscribe(luminosities, "illuminance", handleIlluminanceEvent)
         subscribe(motions, "motion", handleMotionEvent)
         subscribe(presence, "presence", handlePresenceEvent)
         subscribe(switches, "switch", handleSwitchEvent)
@@ -89,6 +94,10 @@ def handleContactEvent(evt) {
  
 def handleAccelerationEvent(evt) {
         sendValue(evt) { it == "active" ? "true" : "false" }
+}
+
+def handleIlluminanceEvent(evt) {
+        sendValue(evt) { it.toString() }
 }
  
 def handleMotionEvent(evt) {
