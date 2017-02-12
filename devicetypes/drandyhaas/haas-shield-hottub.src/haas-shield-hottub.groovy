@@ -19,6 +19,8 @@ metadata {
         attribute "ORP","string"
         attribute "heatingSetpoint","number"
         attribute "freeram","number"
+        attribute "power","number"
+        attribute "heatslider","number"
 	}
 
 	// Simulator metadata
@@ -37,13 +39,9 @@ metadata {
 			state "on", label: 'relay on', action: "off", icon: "st.switches.switch.on", backgroundColor: "#79b821"
 			state "off", label: 'relay off', action: "on", icon: "st.switches.switch.off", backgroundColor: "#ffffff"
 		}
-
-		standardTile("greeting", "device.greeting", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
-			state "default", label: 'hello', action: "hello", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
-		}  
         
 		valueTile("message", "device.greeting", inactiveLabel: false) {
-			state "greeting", label:'${currentValue}', unit:""
+			state "greeting", label:'${currentValue}', unit:"", action: "hello"
 		}
         
         valueTile("temperature", "device.temperature", inactiveLabel: false) {
@@ -95,9 +93,12 @@ metadata {
         valueTile("freeram", "device.freeram", inactiveLabel: false) {
 			state "default", label:'RAM ${currentValue} B free'
 		}
+        valueTile("power", "device.power", inactiveLabel: false) {
+			state "default", label:'${currentValue} W'
+		}
         
 		main "temperature"
-		details(["temperature","outertemp","innertemp","heatSliderControl","heatingSetpoint","phval","orpval","switch","greeting","message","freeram"])
+		details(["temperature","outertemp","innertemp","heatSliderControl","heatingSetpoint","phval","orpval","switch","message","freeram","power"])
 	}
 }
 
@@ -148,6 +149,8 @@ def getorp() {
 }
 
 def quickSetHeat(degrees) {
+	log.debug "set heat slider to $degrees "
+    sendEvent(name: "heatslider", value: degrees )
 	def pos = (int)(1.8*(100-degrees));//to go from 0-180, to actually turn knob
     //180 is coldest, 0 is hotest
 	log.debug "set heat knob pos at $pos "
@@ -197,7 +200,7 @@ def parse(String description){
 		def ph = (text.substring(0, text.length()-2)).toFloat()// -PH
         log.debug "got ph $ph"
 		//def tempc=((device.currentValue("temperature").toFloat()-32.0)/1.8).round(2);
-		def pht = (ph).round(1);
+		def pht = (ph).round(2);
         //log.debug "got phtemp $pht for temp ${tempc}C"        
         sendEvent(name: "humidity", value: pht )
         result = createEvent(name: "pH", value: pht)
@@ -220,6 +223,11 @@ def parse(String description){
     	def val = (text.substring(0, text.length()-1)).toFloat()// freeram
         log.debug "got freeram $val"
         result = createEvent(name: "freeram", value: val.round() )
+	}
+    else if (theunit=="W"){
+    	def val = (text.substring(0, text.length()-1)).toFloat().round()// power
+        log.debug "got power $val"
+        result = createEvent(name: "power", value: val*9 )
 	}
 	
     log.debug result?.descriptionText
