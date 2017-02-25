@@ -6,6 +6,7 @@ metadata {
 		capability "Relative Humidity Measurement"
 		capability "Temperature Measurement"
 		capability "Illuminance Measurement"
+		capability "Water Sensor"
 
         command "quickSetHeat"
         command "hello"
@@ -21,6 +22,7 @@ metadata {
         attribute "freeram","number"
         attribute "power","number"
         attribute "heatslider","number"
+        attribute "wetness", "number"
 	}
 
 	// Simulator metadata
@@ -96,9 +98,16 @@ metadata {
         valueTile("power", "device.power", inactiveLabel: false) {
 			state "default", label:'${currentValue} W'
 		}
+        valueTile("wetness", "device.wetness", inactiveLabel: false) {
+			state "default", label:'${currentValue} wet'
+		}
+        standardTile("water", "device.water", width: 1, height: 1) {
+			state "dry", icon:"st.alarm.water.dry", backgroundColor:"#ffffff"
+			state "wet", icon:"st.alarm.water.wet", backgroundColor:"#53a7c0"
+		}
         
 		main "temperature"
-		details(["temperature","outertemp","innertemp","heatSliderControl","heatingSetpoint","phval","orpval","switch","message","freeram","power"])
+		details(["temperature","outertemp","innertemp","heatSliderControl","heatingSetpoint","phval","orpval","switch","message","freeram","power","water","wetness"])
 	}
 }
 
@@ -228,6 +237,19 @@ def parse(String description){
     	def val = (text.substring(0, text.length()-1)).toFloat().round()// power
         log.debug "got power $val"
         result = createEvent(name: "power", value: val*9 )
+	}
+    else if (theunit=="t"){
+    	def val = (text.substring(0, text.length()-3)).toFloat().round()// wetness
+        log.debug "got wetness $val"
+        if (val>100){
+            log.debug "now wet"
+        	sendEvent( name: "water", value: "wet" )
+		}
+        else{
+            log.debug "now dry"
+        	sendEvent( name: "water", value: "dry" )
+		}
+        result = createEvent(name: "wetness", value: val )
 	}
 	
     log.debug result?.descriptionText
