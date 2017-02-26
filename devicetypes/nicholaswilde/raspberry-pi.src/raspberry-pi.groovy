@@ -130,8 +130,12 @@ def parse(String description) {
     def map = [:]
     def descMap = parseDescriptionAsMap(description)
     log.debug "descMap: ${descMap}"
-    
+    if (!descMap.containsKey("headers")) return;
+    if (!descMap.containsKey("body")) return;
+
+    def headers = new String(descMap["headers"].decodeBase64())
     def body = new String(descMap["body"].decodeBase64())
+    log.debug "headers: ${headers}"
     log.debug "body: ${body}"
     
     def slurper = new JsonSlurper()
@@ -233,7 +237,6 @@ def parseDescriptionAsMap(description) {
 		map += [(nameAndValue[0].trim()):nameAndValue[1].trim()]
 	}
 }
-
 
 def toAscii(s){
         StringBuilder sb = new StringBuilder();
