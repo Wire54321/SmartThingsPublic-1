@@ -6,6 +6,8 @@ metadata {
 		capability "Temperature Measurement"
 		capability "Polling"
 		capability "Refresh"
+        
+        command "get"
 	}
 
 	preferences {
@@ -42,6 +44,16 @@ metadata {
 		main "RefreshTrigger"
 		details(["RefreshTrigger", "temperature"])
 	}
+}
+
+def get(String name, String val){
+	log.debug "get $name $val "
+    sendEvent(name: name, value: val)
+}
+
+def get(String name, BigDecimal val){
+	log.debug "get $name $val "
+    sendEvent(name: name, value: val)
 }
 
 def refresh() {

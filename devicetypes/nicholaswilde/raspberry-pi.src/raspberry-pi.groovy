@@ -48,6 +48,8 @@ metadata {
         attribute "memory", "string"
         attribute "diskUsage", "string"
         
+        attribute "esp8266haas", "string"
+        
         command "restart"
 	}
 
@@ -152,6 +154,7 @@ def parse(String description) {
     	log.debug "temp: ${result.cpu_temp.toDouble().round()}"
         log.debug "temp: ${celsiusToFahrenheit(result.cpu_temp.toDouble().round())} F"
     	sendEvent(name: "temperature", value: celsiusToFahrenheit(result.cpu_temp.toDouble().round()))
+        sendEvent(name: "esp8266haas", value: "bogus")//just to test things out, so we can see a change
     }
     
     if (result.containsKey("cpu_perc")) {
@@ -177,6 +180,10 @@ def parse(String description) {
             sendEvent(name: "contact", value: "open")
         }
     }
+    if (headers.contains("esp8266haas")){
+		log.debug "got from esp8266haas: $result "
+        sendEvent(name: "esp8266haas", value: body)
+	}
   	
 }
 
