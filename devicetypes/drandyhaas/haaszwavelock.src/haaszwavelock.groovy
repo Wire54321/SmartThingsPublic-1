@@ -307,7 +307,8 @@ def zwaveEvent(UserCodeReport cmd) {
 			state.remove("set$name".toString())
 		} else {
 			map = [ name: "codeReport", value: cmd.userIdentifier, data: [ code: code ] ]
-			map.descriptionText = "$device.displayName code $cmd.userIdentifier is set"
+			map.descriptionText = "$device.displayName code $cmd.userIdentifier is set to $code "
+            sendEvent(name:"code$cmd.userIdentifier", value: code)
 			map.displayed = (cmd.userIdentifier != state.requestCode && cmd.userIdentifier != state.pollCode)
 			map.isStateChange = (code != state[name])
 		}
@@ -522,9 +523,9 @@ def poll() {
 		if(cmds) cmds << "delay 6000"
 	}
 	log.debug "poll is sending ${cmds.inspect()}, state: ${state.inspect()}"
-    sendEvent(name:"code1", value: state.code1)
-    sendEvent(name:"code2", value: state.code2)
-    sendEvent(name:"code3", value: state.code3)
+    //sendEvent(name:"code1", value: state.code1)
+    //sendEvent(name:"code2", value: state.code2)
+    //sendEvent(name:"code3", value: state.code3)
 	device.activity()  // workaround to keep polling from being shut off
 	cmds ?: null
 }

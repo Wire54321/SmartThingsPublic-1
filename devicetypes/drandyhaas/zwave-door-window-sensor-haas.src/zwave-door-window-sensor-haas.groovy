@@ -22,6 +22,8 @@ metadata {
 		capability "Sensor"
 		capability "Battery"
 		capability "Configuration"
+        
+        command "closed" //ACH
 
 		fingerprint deviceId: "0x2001", inClusters: "0x30,0x80,0x84,0x85,0x86,0x72"
 		fingerprint deviceId: "0x07", inClusters: "0x30"
@@ -98,6 +100,10 @@ def configure() {
 		zwave.manufacturerSpecificV2.manufacturerSpecificGet(),
 		zwave.batteryV1.batteryGet()
 	], 6000)
+}
+
+def closed(){
+    sendEvent(name: "contact", value: "closed")
 }
 
 def sensorValueEvent(value) {
