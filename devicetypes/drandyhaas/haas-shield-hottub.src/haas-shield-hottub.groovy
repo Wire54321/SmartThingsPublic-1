@@ -79,10 +79,10 @@ metadata {
 				[value: 96, color: "#bc2323"]
 			]
 		}
-        valueTile("phval", "device.pH", inactiveLabel: false) {
+        standardTile("phval", "device.pH", inactiveLabel: false) {
 			state "default", label:'pH:${currentValue}', action: "getph"
 		}
-        valueTile("orpval", "device.ORP", inactiveLabel: false) {
+        standardTile("orpval", "device.ORP", inactiveLabel: false) {
 			state "default", label:'ORP:${currentValue}', action: "getorp"
 		}
         
