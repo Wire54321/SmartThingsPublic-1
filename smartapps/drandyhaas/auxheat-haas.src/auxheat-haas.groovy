@@ -23,6 +23,10 @@ preferences {
     section("Choose hottub ... ") {
 		input "hottub", "capability.temperatureMeasurement", multiple: false
 	}
+    section("Choose hottub power sensor... ") {
+		input "hottubpower", "capability.powerMeter", multiple: false
+	}
+    
     section("Choose the weather to update... ") {
     	input name: "weatherDevices", type: "device.smartweatherStationTile", title: "Select Weather Device(s)", description: "Select the Weather Tiles to update", required: true, multiple: true
     }
@@ -112,6 +116,8 @@ def appTouch(evt)
 	//thermostat.setCoolingSetpoint(coolingSetpoint)
 	//thermostat.poll()
     
+    
+    
     //update the heater settings
     checkforchanges()
     
@@ -130,7 +136,18 @@ def appTouch(evt)
     
     //update hottub stuff
     runIn(2, ph)
-    runIn(7, orp)
+    runIn(3, orp)
+    
+    
+    
+    //adjust hottub settings if too hot
+    def hottubtemp = hottub.currentTemperature
+    def hottubpower = hottubpower.currentPower
+    log.debug "hottub temp and power: ${hottubtemp} ${hottubpower} "
+    if (hottubtemp>99.0 && hottubpower>10.0){
+    	log.debug "knob is ${hottub.currentKnob} , lowering by 1"
+    	hottub.setknob(hottub.currentKnob - 1)
+    }
     
     state.lastRun = now //milliseconds
 }
