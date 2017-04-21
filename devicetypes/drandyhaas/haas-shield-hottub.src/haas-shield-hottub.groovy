@@ -9,6 +9,7 @@ metadata {
 		capability "Water Sensor"
 
         command "quickSetHeat"
+        command "setknob"
         command "hello"
         command "getph"
         command "getorp"
@@ -22,6 +23,7 @@ metadata {
         attribute "freeram","number"
         attribute "power","number"
         attribute "heatslider","number"
+        attribute "knob","number"
         attribute "wetness", "number"
 	}
 
@@ -92,6 +94,9 @@ metadata {
         valueTile("heatingSetpoint", "device.heatingSetpoint", inactiveLabel: false, decoration: "flat") {
 			state "heat", label:'pos: ${currentValue}', backgroundColor:"#ffffff"
 		}
+        valueTile("knob", "device.knob", inactiveLabel: false, decoration: "flat") {
+			state "default", label:'knob: ${currentValue}', backgroundColor:"#ffffff"
+		}
         valueTile("freeram", "device.freeram", inactiveLabel: false) {
 			state "default", label:'RAM ${currentValue} B free'
 		}
@@ -107,7 +112,7 @@ metadata {
 		}
         
 		main "temperature"
-		details(["temperature","outertemp","innertemp","heatSliderControl","heatingSetpoint","phval","orpval","switch","message","freeram","power","water","wetness"])
+		details(["temperature","outertemp","innertemp","heatSliderControl","heatingSetpoint","knob","phval","orpval","switch","message","freeram","power","water","wetness"])
 	}
 }
 
@@ -159,10 +164,15 @@ def getorp() {
 
 def quickSetHeat(degrees) {
 	log.debug "set heat slider to $degrees "
-    sendEvent(name: "heatslider", value: degrees )
-	def pos = (int)(1.8*(100-degrees));//to go from 0-180, to actually turn knob
+    sendEvent(name: "heatingSetpoint", value: degrees )
+    setknob(degrees)
+}
+def setknob(degrees) {
+	log.debug "set knob at $degrees "
+    def pos = (int)(1.8*(100-degrees));//to go from 0-180, to actually turn knob
     //180 is coldest, 0 is hotest
 	log.debug "set heat knob pos at $pos "
+    //sendEvent(name: "knob", value: degrees )
     zigbee.smartShield(text: "servopos_${pos}").format()
 }
 
@@ -226,7 +236,7 @@ def parse(String description){
         log.debug "got pos $pos"
         def degrees=(100.0-(pos/1.8)).round(1);//to go from pos 0-180, to degrees
         log.debug "so heatingSetpoint is $degrees "
-        result = createEvent(name: "heatingSetpoint", value: degrees)
+        result = createEvent(name: "knob", value: degrees)
     }
     else if (theunit=="B"){
     	def val = (text.substring(0, text.length()-1)).toFloat()// freeram
