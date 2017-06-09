@@ -90,7 +90,7 @@ metadata {
 			state "emergencyHeat", label:'mode aux heat', action:"off", nextState:"off"
 		}
         standardTile("operstate", "device.thermostatOperatingState", inactiveLabel: false, decoration: "flat") {
-			state "default", label:'${currentValue}'
+			state "default", label:'state: ${currentValue}'
 		}
 		standardTile("fanMode", "device.thermostatFanMode", inactiveLabel: false, decoration: "flat") {
 			state "fanAuto", label:'fan mode auto', action:"switchFanMode"
@@ -98,7 +98,7 @@ metadata {
 			state "fanCirculate", label:'fan mode circ', action:"switchFanMode"
 		}
         valueTile("thermostatFanState", "device.thermostatFanState", inactiveLabel: false, decoration: "flat") {
-			state "default", label:'${currentValue}'
+			state "default", label:'state: ${currentValue}'
 		}
 		controlTile("heatSliderControl", "device.heatingSetpoint", "slider", height: 1, width: 2, inactiveLabel: false) {
 			state "setHeatingSetpoint", action:"quickSetHeat", backgroundColor:"#d04e00"
@@ -128,10 +128,10 @@ metadata {
 			state "battery", label:'Battery ${currentValue}%', backgroundColor:"#ffffff" 
 		}
     	valueTile("humidity", "device.humidity", inactiveLabel: false, decoration: "flat") { 
-			state "humidity", label:'Humidity ${currentValue}%', backgroundColor:"#ffffff"
+			state "humidity", label:'Hum. ${currentValue}%', backgroundColor:"#ffffff"
 		}
 		main "temperature"
-		details(["temperature", "mode", "operstate", "humidity", "thermostatFanState", "fanMode", "heatSliderControl", "heatingSetpoint", 
+		details(["temperature", "mode", "operstate", "humidity", "fanMode", "thermostatFanState", "heatSliderControl", "heatingSetpoint", 
         "coolSliderControl", "coolingSetpoint", "refresh", "configure", "battery"])
 	}
 }

@@ -251,7 +251,7 @@ def parse(String description){
     else if (theunit=="t"){
     	def val = (text.substring(0, text.length()-3)).toFloat().round()// wetness
         log.debug "got wetness $val"
-        if (val>100){
+        if (val>200){
             log.debug "now wet"
         	sendEvent( name: "water", value: "wet" )
 		}

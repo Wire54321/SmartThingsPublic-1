@@ -27,13 +27,19 @@ metadata {
 		}
 		standardTile("hello", "device.hello", width: 1, height: 1, canChangeIcon: true, canChangeBackground: true) {
 			state "default", label: 'hello', action: "hello", icon: "st.switches.switch.off", backgroundColor: "#ccccff"
-		}        
+		}  
+        standardTile("close", "device.close", width: 1, height: 1) {
+			state "default", label: 'close', action: "off"
+		}  
+        standardTile("open", "device.open", width: 1, height: 1) {
+			state "default", label: 'open', action: "on"
+		}  
 		valueTile("greeting", "device.greeting", inactiveLabel: false) {
 			state "greeting", label:'${currentValue}', unit:""
 		}        
               
 		main "switch"
-		details(["switch","hello","greeting"])
+		details(["switch","hello","greeting","close","open"])
 	}
 }
 
