@@ -427,8 +427,12 @@ def configure() {
         
 		// Can use the zwaveHubNodeId variable to add the hub to the device's associations:
 		zwave.associationV1.associationSet(groupingIdentifier:2, nodeId:zwaveHubNodeId)
+        
     ]
 	commands(request) + ["delay 20000", zwave.wakeUpV1.wakeUpNoMoreInformation().format()]
+
+    //tell no motion
+    sendEvent(name:"motion",value:"inactive")
 }
 
 private setConfigured() {
