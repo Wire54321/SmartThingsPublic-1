@@ -121,24 +121,34 @@ def motionHandler(evt)
 def evaluate(currentTemp, desiredTemp)
 {
 	log.debug "EVALUATE($currentTemp, $desiredTemp)"
+    
+    def tmode = thermo.currentThermostatMode
+    log.debug("current thermo mode is $tmode")
+    
 	def threshold = 1.0
 	if (mode == "cool") {
 		// air conditioner
-		if (currentTemp - desiredTemp >= threshold) {
-			outlets.on()
-		}
-		else if (desiredTemp - currentTemp >= threshold) {
-			outlets.off()
-		}
+        if (tmode=="cool"){
+        	log.debug("mode is cool and we're cooling")
+			if (currentTemp - desiredTemp >= threshold) {
+				outlets.on()
+			}
+			else if (desiredTemp - currentTemp >= threshold) {
+				outlets.off()
+			}
+        }
 	}
 	else {
 		// heater
-		if (desiredTemp - currentTemp >= threshold) {
-			outlets.on()
-		}
-		else if (currentTemp - desiredTemp >= threshold) {
-			outlets.off()
-		}
+		if (tmode=="heat"){
+        	log.debug("mode is heat and we're heating")
+			if (desiredTemp - currentTemp >= threshold) {
+				outlets.on()
+			}
+			else if (currentTemp - desiredTemp >= threshold) {
+				outlets.off()
+			}
+        }
 	}
 }
 
