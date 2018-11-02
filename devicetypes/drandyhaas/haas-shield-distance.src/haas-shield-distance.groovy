@@ -14,7 +14,7 @@ metadata {
 	}
 
 	// Simulator metadata
-	simulator {
+	simulator { 
 	}
 
 	// UI tile definitions
@@ -73,7 +73,7 @@ metadata {
 	}
 }
 
-Map parse(String description) {
+Map parse2(String description) {
 
 	def value = zigbee.parse(description)?.text
 	def linkText = getLinkText(device)

@@ -193,7 +193,7 @@ def ping() {
 }
 
 private getAction(uri){ 
-  updateDNI()
+  //updateDNI()
   def userpass
   log.debug uri
   if(password != null && password != "") 

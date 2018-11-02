@@ -116,7 +116,7 @@ metadata {
 	}
 }
 
-Map parse(String description) {
+Map parseparse(String description) {
 
 	def value = zigbee.parse(description)?.text
 	def linkText = getLinkText(device)
@@ -185,13 +185,18 @@ def parse(String description){
     	return
     }
     if (text == "ping"){//this seems to come in once per minute
-        def hp = device.currentValue("heatingSetpoint") 
-    	log.debug "got ping, heatingSetpoint is ${hp}"
+        def hp = device.currentValue("knob") 
+    	log.debug "got ping, knob is at ${hp}"
         
         //remind the device of its setpoint sometimes
-        def ten = (new Date()).time % 10 
-        log.debug "random mod is $ten "
-        if (ten == 1) quickSetHeat(hp)
+        def mymod = (new Date()).time % 60 
+        log.debug "random mymod is $mymod "
+        if (mymod == 1 && hp>70) { // about once per hour and if the tub is supposed to be heating
+        	log.debug "setting to 50!"
+        	setknob(50) // put knob down a bit
+            log.debug "setting back to hp!"
+        	setknob(hp) // then turn it back up
+        }
         return
     }
     
@@ -251,7 +256,7 @@ def parse(String description){
     else if (theunit=="t"){
     	def val = (text.substring(0, text.length()-3)).toFloat().round()// wetness
         log.debug "got wetness $val"
-        if (val>200){
+        if (val>300){
             log.debug "now wet"
         	sendEvent( name: "water", value: "wet" )
 		}
