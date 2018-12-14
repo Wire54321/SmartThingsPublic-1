@@ -191,5 +191,3 @@ def zwaveEvent(physicalgraph.zwave.Command cmd, results) {
 	event.descriptionText = "$event.linkText: $cmd"
 	results << createEvent(event)
 }
-
-
