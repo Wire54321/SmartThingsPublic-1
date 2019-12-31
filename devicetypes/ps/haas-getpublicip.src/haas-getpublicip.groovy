@@ -47,7 +47,7 @@ def parse(String description) {
     def values=publicip2.tokenize(".")
     log.debug values[0]
     log.debug values[1]
-    if (values[0]!="68") {
+    if (values[0]=="172") {
     log.debug "wet"
     sendEvent(name: "water", value: "wet")
     }
