@@ -8,6 +8,7 @@ metadata {
 		capability "Health Check"
         
         command "sendtext"
+        command "gettext"
 
 		// Generic
 		fingerprint profileId: "C05E", deviceId: "0000", inClusters: "0006", deviceJoinName: "Generic On/Off Light", ocfDeviceType: "oic.d.light"
@@ -38,21 +39,38 @@ metadata {
 		standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
-        standardTile("sendtexty", "device.sendtexty", inactiveLabel: false) {
+        standardTile("sendtext", "device.sendtext", inactiveLabel: false, width: 2, height: 2) {
 			state "default", label:"sendtext", action:"sendtext"
 		}
+        standardTile("gettext", "device.gettext", inactiveLabel: false, width: 2, height: 2) {
+			state "default", label:"gettext", action:"gettext"
+		}
 		main "switch"
-		details(["switch", "refresh", "sendtexty"])
+		details(["switch", "refresh", "sendtext", "gettext"])
 	}
 }
 
 // Parse incoming device messages to generate events
 def parse(String description) {
 	log.debug "description is $description"
+    Map map = [:]
 	def event = zigbee.getEvent(description)
 	if (event) {
 		sendEvent(event)
 	}
+    else if (description?.startsWith("read attr -")) {
+		def descMap = zigbee.parseDescriptionAsMap(description)
+		//log.debug "Desc Map: $descMap"
+		if (descMap.clusterInt == 0) {
+			def readstring = descMap.value
+            byte[] asciireadstring = readstring.decodeHex()
+            String text = new String(asciireadstring)
+            log.debug "readstring is $readstring, ascii $asciireadstring, text $text"
+		}
+        else {
+			log.warn "Not an attribute we can decode"
+		}
+	} 
 	else {
 		log.warn "DID NOT PARSE MESSAGE for description : $description"
 		log.debug zigbee.parseDescriptionAsMap(description)
@@ -75,21 +93,22 @@ def ping() {
 }
 
 def refresh() {
-    log.info "refresh, write attr 6"
-	//zigbee.onOffRefresh() + zigbee.onOffConfig()
-    //zigbee.writeAttribute(0x000, 0x0010, 0x42, "0102030405060708090a0b0c0d0e0f10") // string_char location attribute
-    String mystr = "0123456789abcdef"
-    def packed = mystr.reverse().encodeAsHex() // must reverse since little-endian(?)
-    log.info "packed is: "+packed
-    def hexbytes = "0102030405060708090a0b0c0d0e0f" // must be 16 bytes
-    hexbytes = packed
-    "st wattr 0x${device.deviceNetworkId} 8 0x000 0x010 0x42 {"+hexbytes+"10}" // SAMPLELIGHT_ENDPOINT is defined as 8 in device code // the 10 on the end means 16 bytes length
+    log.info "refresh"
+	zigbee.onOffRefresh() + zigbee.onOffConfig()
 }
 
-def sendtext(){
-    log.info "sendtext, read"
-	//zigbee.smartShield(text: "Hello world!").format()
+def gettext(){ // read the LocationDescription string from the device
+	log.info "gettext"
     zigbee.readAttribute(0x000, 0x0010)
+}
+
+def sendtext(){ // set the LocationDescription string on the device
+    log.info "sendtext"
+    //zigbee.writeAttribute(0x000, 0x0010, 0x42, "0102030405060708090a0b0c0d0e0f10") // string_char location attribute, doesn't work?
+    String mystr = "0123456789abcdef" // must be 16 bytes
+    def packed = mystr.reverse().encodeAsHex() // must reverse since little-endian(?)
+    log.info "sending "+mystr+", packed is: "+packed
+    "st wattr 0x${device.deviceNetworkId} 8 0x000 0x010 0x42 {"+packed+"10}" // SAMPLELIGHT_ENDPOINT is defined as 8 in device code // the 10 on the end means 16 bytes length
 }
 
 def configure() {
