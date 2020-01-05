@@ -139,6 +139,7 @@ def parse(String description) {
             byte[] asciireadstring = readstring.decodeHex()
             String text = new String(asciireadstring)
             log.debug "readstring is $readstring, ascii $asciireadstring, text $text"
+            if (text.startsWith("ping.")) return
             return createEvent(name: "text", value: "$text")
 		}
         else {
