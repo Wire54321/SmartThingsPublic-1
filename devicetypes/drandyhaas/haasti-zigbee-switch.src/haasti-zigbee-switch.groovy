@@ -9,13 +9,8 @@ metadata {
         
         command "sendtext"
         command "gettext"
-
-		// Generic
-		fingerprint profileId: "C05E", deviceId: "0000", inClusters: "0006", deviceJoinName: "Generic On/Off Light", ocfDeviceType: "oic.d.light"
-		fingerprint profileId: "0104", deviceId: "0103", inClusters: "0006", deviceJoinName: "Generic On/Off Switch"
-		fingerprint profileId: "0104", deviceId: "010A", inClusters: "0006", deviceJoinName: "Generic On/Off Plug", ocfDeviceType: "oic.d.smartplug"
-
-        fingerprint profileId: "0104", manufacturer: "HaasTI", model: "HaasTI Switch", deviceJoinName: "HaasTI Switch"
+        
+        fingerprint profileId: "0104", manufacturer: "TexasInstruments", model: "TI0001", deviceJoinName: "HaasTI Thing"
 	}
 
 	// simulator metadata
@@ -52,12 +47,15 @@ metadata {
 
 // Parse incoming device messages to generate events
 def parse(String description) {
-	log.debug "description is $description"
+	//log.debug "description is $description"
     Map map = [:]
 	def event = zigbee.getEvent(description)
 	if (event) {
 		sendEvent(event)
 	}
+    else if (description?.startsWith("catchall:")) {
+    	log.debug "catchall is $description"
+    }
     else if (description?.startsWith("read attr -")) {
 		def descMap = zigbee.parseDescriptionAsMap(description)
 		//log.debug "Desc Map: $descMap"
@@ -97,15 +95,36 @@ def refresh() {
 	zigbee.onOffRefresh() + zigbee.onOffConfig()
 }
 
-def gettext(){ // read the LocationDescription string from the device
+def gettext(){ // read some attribute string from the device
 	log.info "gettext"
-    zigbee.readAttribute(0x000, 0x0010)
+    //zigbee.readAttribute(0x000, 0x0006) // gets the last thing the device tried to send to us
+    zigbee.readAttribute(0x000, 0x0010) // gets the last command the device heard us send
 }
 
 def sendtext(){ // set the LocationDescription string on the device
-    log.info "sendtext"
-    //zigbee.writeAttribute(0x000, 0x0010, 0x42, "0102030405060708090a0b0c0d0e0f10") // string_char location attribute, doesn't work?
-    String mystr = "0123456789abcdef" // must be 16 bytes
+    //log.debug "sendtext"
+    //sendtodevice("ping") // to say hi
+    //sendtodevice("arduino1") // to tell the arduino, connected on serial, to do something, like send back a message on serial (it should just make sure it's <16 bytes, and ends with a ".")
+    //sendtodevice("on") // turn on all io/led
+	//sendtodevice("on1") // turn on io/led 1
+	//sendtodevice("on2") // turn on io/led 2
+	//sendtodevice("on3") // turn on io/led 3
+	//sendtodevice("on4") // turn on io/led 4
+	//sendtodevice("off") // turn off all io/led
+	//sendtodevice("off1") // turn off io/led 1
+	//sendtodevice("off2") // turn off io/led 2
+	//sendtodevice("off3") // turn off io/led 3
+	//sendtodevice("off4") // turn off io/led 4
+    //sendtodevice("getbutt1") // whether button 1 is being pressed
+    //sendtodevice("getbutt2") // whether button 2 is being pressed
+    sendtodevice("getadc0") // return 12 bit value of adc 0
+    //sendtodevice("getadc1") // return 12 bit value of adc 1
+    //sendtodevice("getadc4") // return 12 bit value of adc 4
+    //sendtodevice("getadc5") // return 12 bit value of adc 5
+}
+
+def sendtodevice(String mystr){
+    mystr=mystr.padRight(16,".") // mystr should be 16 bytes!  
     def packed = mystr.reverse().encodeAsHex() // must reverse since little-endian(?)
     log.info "sending "+mystr+", packed is: "+packed
     "st wattr 0x${device.deviceNetworkId} 8 0x000 0x010 0x42 {"+packed+"10}" // SAMPLELIGHT_ENDPOINT is defined as 8 in device code // the 10 on the end means 16 bytes length
